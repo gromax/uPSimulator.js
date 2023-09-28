@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>uP Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div>
+      <a href="./index.html">Retour vers le compilateur.</a>
+      <h3>Table des commandes</h3>
+      <table>
+        <tr>
+          <th>Commande</th><th>opcode</th><th>No Arg ?</th><th>K Arg ?</th><th>@ Arg ?</th><th>Pop Arg ?</th><th>Jump ?</th>
+        </tr>
+        <tr><td>ADD</td><td>32</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>SUB</td><td>33</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>MUL ou MULT</td><td>34</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>DIV</td><td>35</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>MOD</td><td>36</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>OR</td><td>37</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>AND</td><td>38</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>XOR</td><td>39</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>CMP</td><td>40</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>MOVE ou MOV</td><td>41</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>INV</td><td>42</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>NEG</td><td>43</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>OUT</td><td>44</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Non</td></tr>
+        <tr><td>INP</td><td>45</td><td>Oui</td><td>Non</td><td>Oui</td><td>Non</td><td>Non</td></tr>
+        <tr><td>STR</td><td>46</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Non</td></tr>
+        <tr><td>POP</td><td>47</td><td>Oui</td><td>Non</td><td>Non</td><td>Non</td><td>Non</td></tr>
+        <tr><td>PUSH</td><td>48</td><td>Oui</td><td>Non</td><td>Non</td><td>Non</td><td>Non</td></tr>
+        <tr><td>GOTO ou B ou JMP</td><td>16</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Oui</td></tr>
+        <tr><td>BEQ</td><td>17</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Oui</td></tr>
+        <tr><td>BNE</td><td>18</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Oui</td></tr>
+        <tr><td>BGT</td><td>19</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Oui</td></tr>
+        <tr><td>BGE</td><td>20</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Oui</td></tr>
+        <tr><td>BLT</td><td>21</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Oui</td></tr>
+        <tr><td>BLE</td><td>22</td><td>Non</td><td>Non</td><td>Oui</td><td>Non</td><td>Oui</td></tr>
+        <tr><td>HALT</td><td>0</td><td>Oui</td><td>Non</td><td>Non</td><td>Non</td><td>Non</td></tr>
+        <tr><td>NOP</td><td>1</td><td>Oui</td><td>Non</td><td>Non</td><td>Non</td><td>Non</td></tr>
+      </table>
+      <h3>Format des commandes</h3>
+      <p>Toutes les commandes ont un opcode sur 6 bits qui sera complété par 2 bits indiquant le type d'argument.</p>
+      <ul>
+        <li><b>00</b> pour pas d'argument,</li>
+        <li><b>01</b> pour un argument de type K, c'est à dire un littéral,</li>
+        <li><b>10</b> pour pas d'argument de type A, c'est à dire une adresse &mdash; cela vaut pour un saut,</li>
+        <li><b>11</b> pour pop.</li>
+      </ul>
+      <p>Ainsi, <b>ADD #45</b> est une addition avec littéral.<ul>
+        <li>La commande sera constituée d'un octets formée de ADD = 32 &rarr; 100000</li>
+        <li>On y ajoute les 2 bits indiquant que c'est un littéral : K &rarr; 01</li>
+        <li>45 est code sur un octet &rarr; 0010 1101</li>
+        <li>L'ensemble est donc codé sur 16 bits &rarr; 1000 0001 0010 1101.</li>
+      </ul></p>
+
+      <h3>Commandes de type K</h3>
+      <p>Quand le littéral est entre 0 et 254 compris, le modèle est celui donné ci-dessus dans l'exemple. Mais si le littéral est négatif (donc codé en CA2 16 bits) ou s'il est
+        supérieur ou égal à 255, on choisit d'utiliser une ligne de mémoire supplémentaire.
+      </p>
+      <p>Par exemple, prenons <b>ADD #4000</b> :<ul>
+        <li>ADD et littéral donne toujours pour le premier octet &rarr; 1000 0001,</li>
+        <li>Le codage de 4000 nécessite plus qu'un octer. On ne peut pas le placer à la suite de 1000 0001 pour former un mot de 16 bits...</li>
+        <li>On complète donc le mot avec des 1 soit &rarr; 1000 0001 1111 1111, puis on code 4000 sur un 2e mot de 16 bits &rarr; 0000 1111 1010 0000.</li>
+      </ul> Dans cet exemple, la commade est donc codée sur deux mots de 16 bits &rarr; 1000 0001 1111 1111 ; 0000 1111 1010 0000.</p>
+      
+      <h3>Commandes de type A</h3>
+      <p>Le cas est plus simple car le microprosesseur dispose d'une mémoire de 256 mots de 16 bits. L'adresse tient donc toujours sur un octet.
+        Par exemple pour <b>ADD @x</b>, supposons que @x a été placé à l'adresse 12,
+        <ul>
+          <li>ADD est toujours sur 6 bits &rarr; 100000,</li>
+          <li>l'argument de type A complète avec 2 bits &rrarr; 10,</li>
+          <li>l'adresse 12 &rarr; 0000 1100,</li>
+          <li>le mot complet est donc codé &rarr; 1000 0010 0000 1100</li>
+        </ul>
+      </p>
+
+      <h3>Commandes de type Jump</h3>
+      <p>La cible du saut est une adresse. Donc une commande de type J est toujours une commande de type A.
+         La mention J permet seulement vérifier si le programme assembleur soumis est cohérent.
+        En effet, si un saut pointe vers une étiquette, cette étiquette doit être déclarée.</p>
+
+      <h3>Commandes de type Pop</h3>
+      <p>Une opération complexe comme (@x + 2) * (@y + 7) nécessite des calculs intermédiaires. L'utisation d'une pile simplifie grandement les choses.
+        Dans ce cas on pourra faire :<ul>
+          <li>MOV @y</li>
+          <li>ADD #7</li>
+          <li>PUSH <i>revient à dire que l'on met le résultat de côté.</i></li>
+          <li>MOV @x</li>
+          <li>ADD #2</li>
+          <li>MUL POP  <i>multiplie le résultat courant, @x+2, avec le résultat mis de côté, @y+7</i>.</li>
+        </ul>
+      </p>
+      <p>Les opérations autorisant POP vont donc effectuer POP afin d'utiliser dernière valeur laissée sur la pile.</p>
+      <p>Pour <b>ADD POP</b>, par exemple, le mot sera :<ul>
+        <li>ADD &rrarr; 100000,</li>
+        <li>POP &rarr; 11,</li>
+        <li>Aucun argument pour le 2e octet. On met ce qu'on veut, par exemple des 0.</li>
+        <li>La commande est donc condée 1000 0011 0000 0000.</li>
+      </ul></p>
+
+      <h3>Commandes sans argument</h3>
+      <p>Elles suivent le principe du précédent.</p>
+      <p>Par exemple, <b>INV</b> seul signifie que l'on inverse bit à bit le contenu du registre de travail W. Le codage sera <ul>
+        <li>INV = 42 &rarr; 101010</li>
+        <li>Pas d'argument &rarr; 00</li>
+        <li>Le 2e octet rempli avec des 0 &rarr; 0000 0000,</li>*
+        <li>l'ensemble sera donc codé sur 16 bits &rarr; 1010 1000 0000 0000.</li>
+      </ul></p>
+    </div>
+  </body>
+</html>
+
+    
+
+    
+
+
+
+
+

@@ -1,0 +1,20 @@
+textarea { width: 90%; height:200px; margin:20px;}
+
+.inputWidget { width:70px; height: 16px; }
+
+.ucMessage { width:310px; height:60px; resize:none; margin:0px; }
+
+.areaProgram { width:230px; height:260px; resize:none; }
+.buttonProgram { text-align: center;}
+#error {
+    width:600px;
+    height:100px;
+    border-width: 1px;
+    border:'#000';
+    border-style: solid;
+    padding:10px;
+    overflow: scroll;
+}
+.errorline { color:crimson; }
+.validline { color:forestgreen; }
+.message { margin-block-start: 1px; margin-block-end: 1px; }
