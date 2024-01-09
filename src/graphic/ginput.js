@@ -28,12 +28,14 @@ class GInput {
     #callback = null;
     constructor(parent) {
         this.#group = parent.nested();
+        this.#group.attr("xmlns","http://www.w3.org/1999/xhtml");
+
         this.#back = this.#group.rect(GInput.WIDTH, GInput.HEIGHT);
         this.#back.fill(GInput.FILL).stroke('none');
         let titre = this.#group.text('Entrée');
+
         titre.font(TITLE);
         titre.move(3, 3);
-
         let button = new Button(this.#group, {
             width:30,
             height:21,
@@ -47,7 +49,7 @@ class GInput {
         button.move(80,45);
 
         let foreignObject = this.#group.foreignObject(80, 22);
-        foreignObject.add(SVG(`<div xmlns="http://www.w3.org/1999/xhtml"><input type='text' id='inputWidget' value='' placeholder='???' class='inputWidget'></div>`));
+        foreignObject.add(SVG(`<div><input type='text' id='inputWidget' value='' placeholder='???' class='inputWidget'></div>`));
         foreignObject.move(3, 45);
 
         let node = document.getElementById("inputWidget");
@@ -67,7 +69,7 @@ class GInput {
         this.#value.move(150, 10);
         this.#value.activate(false);
 
-        this.#ledRD = new Led(this.#group, {anchor:'north', 'label':'RD'});
+        this.#ledRD = new Led(this.#group, {anchor:'north', 'label':'RD', 'hint':"Entrée -> BUS DATA"});
         this.#ledRD.move(225, GInput.HEIGHT);
 
         let [x, y] = this.#value.anchorSouth;

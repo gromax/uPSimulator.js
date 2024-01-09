@@ -52,12 +52,14 @@ class GOut {
         this.#values = [];
         this.#buttons = [];
         this.#buttonsText = ['b', 'h', 's', 'u'];
+        let hints = ["Affichage en binaire", "Affichage en hexadécimal", "Affichage en entier signé", "Affichage en entier non signé"];
         for (let i=0; i<this.#buttonsText.length; i++){
             let button = new Button(this.#group, {
                 width:GOut.BUTTON_WIDTH,
                 height:GOut.BUTTON_HEIGHT,
                 linewidth:1,
                 label:this.#buttonsText[i],
+                hint:hints[i],
                 callback:(e) => {this.setFormat(this.#buttonsText[i]);}
 
             })
@@ -65,7 +67,7 @@ class GOut {
             this.#buttons.push(button);
         }
 
-        this.#ledWR = new Led(this.#group, {anchor:'north', 'label':'WR'});
+        this.#ledWR = new Led(this.#group, {anchor:'north', 'label':'WR', 'hint':"BUS DATA -> Sortie"});
         this.#ledWR.move(20, GOut.HEIGHT);
 
         this.#bus = this.#group.path(`M${this.#champ.cx()} ${this.#champ.y() + this.#champ.height()} V${GOut.HEIGHT}`);
