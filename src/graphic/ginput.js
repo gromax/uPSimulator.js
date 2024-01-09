@@ -26,6 +26,7 @@ class GInput {
     #ledRD;
     #warningText;
     #callback = null;
+    #div;
     constructor(parent) {
         this.#group = parent.nested();
         this.#group.attr("xmlns","http://www.w3.org/1999/xhtml");
@@ -48,9 +49,17 @@ class GInput {
         });
         button.move(80,45);
 
-        let foreignObject = this.#group.foreignObject(80, 22);
-        foreignObject.add(SVG(`<div><input type='text' id='inputWidget' value='' placeholder='???' class='inputWidget'></div>`));
-        foreignObject.move(3, 45);
+        //let foreignObject = this.#group.foreignObject(80, 22);
+        //foreignObject.add(SVG(`<div><input type='text' id='inputWidget' value='' placeholder='???' class='inputWidget'></div>`));
+        //foreignObject.move(3, 45);
+
+        let d = document.createElement('div');
+        d.style.position = 'absolute';
+        d.style.top = '3px';
+        d.style.left = '45px';
+        document.body.appendChild(d);
+        d.innerHTML = "<input type='text' id='inputWidget' value='' placeholder='???' class='inputWidget'>";
+        this.#div = d;
 
         let node = document.getElementById("inputWidget");
         node.addEventListener("keyup", (e) => {
@@ -145,6 +154,8 @@ class GInput {
 
     move(x, y) {
         this.#group.move(x, y);
+        this.#div.style.left = (10+x)+'px';
+        this.#div.style.top = (52+y)+'px';
         return this;
     }
 
