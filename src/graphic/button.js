@@ -11,7 +11,8 @@ class Button {
         'size':12,
         'linewidth':2,
         'label': '',
-        'callback':null
+        'callback':null,
+        'hint':''
     }
     #group;
     #oncolor;
@@ -40,6 +41,13 @@ class Button {
         let size = ("size" in options) ? options['size'] : Button.OPTIONS['size'];
         let label = ("label" in options) ? options['label'] : Button.OPTIONS['label'];
         let callback = ("callback" in options) ? options['callback'] : Button.OPTIONS['callback'];
+        let hint = ("hint" in options) ? options['hint'] : Button.OPTIONS['hint'];
+
+        if (hint != '') {
+            let hintNode = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            hintNode.textContent = hint;
+            this.#group.node.appendChild(hintNode);
+        }
 
         this.#back = this.#group.rect(width, height);
         this.#back.stroke({color:this.#offcolor.stroke, width:linewidth, linejoin: 'round'});

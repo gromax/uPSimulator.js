@@ -9,6 +9,7 @@ class Led {
         'linewidth':2,
         'label':'',
         'anchor':'east',
+        'hint':'',
         'margin':5,
         'oncolor':ON_COLOR,
         'offcolor':OFF_COLOR
@@ -34,6 +35,7 @@ class Led {
         let label = ("label" in options) ? options['label'] : Led.OPTIONS['label'];
         let anchor = ("anchor" in options) ? options['anchor'] : Led.OPTIONS['anchor'];
         let margin = ("margin" in options) ? options['margin'] : Led.OPTIONS['margin'];
+        let hint = ("hint" in options) ? options['hint'] : Led.OPTIONS['hint'];
         this.#oncolor = ("oncolor" in options) ? options['oncolor'] : Led.OPTIONS['oncolor'];
         this.#offcolor = ("offcolor" in options) ? options['offcolor'] : Led.OPTIONS['offcolor'];
 
@@ -42,6 +44,12 @@ class Led {
         this.#circle.fill(this.#offcolor);
         this.#circle.move(lineWidth, lineWidth);
 
+        if (hint !=''){
+            let hintNode = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            hintNode.textContent = hint;
+            this.#group.node.appendChild(hintNode);
+        }
+        
         if (label == '') {
             return;
         }
