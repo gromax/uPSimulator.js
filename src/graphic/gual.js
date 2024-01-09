@@ -70,14 +70,14 @@ class GUal {
         text.font(TITLE);
         text.cx(30 + w + 10).cy(h + 10 + w/2 + 10);
 
-        this.#ledZ = new Led(this.#group, {anchor:'east', label:'Z'});
+        this.#ledZ = new Led(this.#group, {anchor:'east', label:'Z', 'hint':"Résultat précédent est = 0"});
         let deltaY = 50; 
         this.#ledZ.move(30 + deltaY/2, topUal + deltaY);
         let [xZ, yZ] = this.#ledZ.anchorSouth;
         this.#ledZWire = this.#group.path(`M${xZ} ${yZ} V${GUal.HEIGHT}`).fill('none').stroke({width:2, linecap: 'butt'});
         this.setZ(false);
 
-        this.#ledP = new Led(this.#group, {anchor:'east', label:'P'});
+        this.#ledP = new Led(this.#group, {anchor:'east', label:'P', 'hint':"Résultat précédent est >= 0"});
         deltaY = 80; 
         this.#ledP.move(30 + deltaY/2, topUal + deltaY);
         let [xP, yP] = this.#ledP.anchorSouth;
@@ -85,6 +85,9 @@ class GUal {
         this.setP(false);
 
         this.#backCom = this.#group.rect(GUal.COM_WIDTH,20);
+        let hintNode = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        hintNode.textContent = "Opératon à exécuter";
+        this.#backCom.node.appendChild(hintNode);
         this.#backCom.x(GUal.X_COM).cy(GUal.HEIGHT);
         this.#backCom.fill('#fff').stroke({ color: '#000', width: 2, linecap: 'round', linejoin: 'round' });
         this.#comText = this.#group.text('');
@@ -108,9 +111,9 @@ class GUal {
         this.#pathWOn.path(`M${xW + 30} ${yW} l-10 -7.5 0 15 Z`).stroke('none').fill(HIGHLIGHTED_DATA_BUS.color);
         this.#pathWOn.attr('display', 'none');
 
-        this.#ledRD = new Led(this.#group, {anchor:'north', label:'RD'});
+        this.#ledRD = new Led(this.#group, {anchor:'north', label:'RD', 'hint':"W -> DATA BUS"});
         this.#ledRD.move(100, GUal.HEIGHT);
-        this.#ledWR = new Led(this.#group, {anchor:'north', label:'WR'});
+        this.#ledWR = new Led(this.#group, {anchor:'north', label:'WR', 'hint':"DATA BUS -> Argument de droite"});
         this.#ledWR.move(130, GUal.HEIGHT);
     }
 

@@ -31,11 +31,11 @@ class PLBloc {
         textPl.move(3,3);
         this.#reg = new GRegister(this.#group, true);
         this.#reg.move(PLBloc.WIDTH - 10 - this.#reg.width, 20);
-        this.#ledInc = new Led(this.#group, {anchor:'north', label:'++'});
+        this.#ledInc = new Led(this.#group, {anchor:'north', label:'++', 'hint':"Incrémenter PL"});
         this.#ledInc.move(20, PLBloc.HEIGHT);
-        this.#ledA = new Led(this.#group, {anchor:'north', label:'→ @'});
+        this.#ledA = new Led(this.#group, {anchor:'north', label:'→ @', 'hint':"PL -> BUS @"});
         this.#ledA.move(60, PLBloc.HEIGHT);
-        this.#ledWR = new Led(this.#group, {anchor:'north', label:'WR'});
+        this.#ledWR = new Led(this.#group, {anchor:'north', label:'WR', 'hint':"BUS @ -> PL"});
         this.#ledWR.move(100, PLBloc.HEIGHT);
 
         let [x, y] = this.#reg.anchorNorth;
@@ -127,11 +127,11 @@ class SPBloc {
         textPl.move(3,3);
         this.#reg = new GRegister(this.#group, true);
         this.#reg.move(SPBloc.WIDTH - 10 - this.#reg.width, 20);
-        this.#ledInc = new Led(this.#group, {anchor:'north', label:'++'});
+        this.#ledInc = new Led(this.#group, {anchor:'north', label:'++', 'hint':"Incrémenter SP"});
         this.#ledInc.move(20, SPBloc.HEIGHT);
-        this.#ledDec = new Led(this.#group, {anchor:'north', label:'--'});
+        this.#ledDec = new Led(this.#group, {anchor:'north', label:'--', 'hint':"Décrémenter SP"});
         this.#ledDec.move(60, SPBloc.HEIGHT);
-        this.#ledA = new Led(this.#group, {anchor:'north', label:'→ @'});
+        this.#ledA = new Led(this.#group, {anchor:'north', label:'→ @', 'hint':"SP -> BUS @"});
         this.#ledA.move(100, SPBloc.HEIGHT);
 
         let [x, y] = this.#reg.anchorNorth;
@@ -214,11 +214,11 @@ class RIBloc {
         textPl.move(3,3);
         this.#reg = new GRegister(this.#group);
         this.#reg.move(RIBloc.WIDTH - 10 - this.#reg.width, 20);
-        this.#ledWR = new Led(this.#group, {anchor:'north', label:'WR'});
+        this.#ledWR = new Led(this.#group, {anchor:'north', label:'WR', 'hint':"BUS DATA -> RI"});
         this.#ledWR.move(20, RIBloc.HEIGHT);
-        this.#ledRDLow = new Led(this.#group, {anchor:'north', label:'RD Low'});
+        this.#ledRDLow = new Led(this.#group, {anchor:'north', label:'RD Low', 'hint':"Octet bas de RI -> BUS DATA"});
         this.#ledRDLow.move(70, RIBloc.HEIGHT);
-        this.#ledALow = new Led(this.#group, {anchor:'north', label:'Low → @'});
+        this.#ledALow = new Led(this.#group, {anchor:'north', label:'Low → @', 'hint':"Octet bas de RI -> BUS @"});
         this.#ledALow.move(140, RIBloc.HEIGHT);
 
         let [x, y] = this.#reg.anchorNorth;
