@@ -64,9 +64,15 @@ class Ual {
             case AsmWords.DIV.code:
                 let a = this.#w.signed();
                 let b = this.#in.signed();
+                if (b == 0){
+                    return 0;
+                }
                 return (a - a%b) / b;
             case AsmWords.MOD.code:
-                return this.#w.signed % this.#in.signed();
+                if (this.#in.signed() == 0) {
+                    return this.#w.signed();
+                }
+                return this.#w.signed() % this.#in.signed();
             case AsmWords.OR.code:
                 return this.#w.read() | this.#in.read();
             case AsmWords.AND.code:
