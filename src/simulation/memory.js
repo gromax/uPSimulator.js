@@ -3,7 +3,7 @@
 import { Register } from './register';
 
 class Memory {
-    static SIZE = 16;
+    static SIZE = 256;
     #data;
     constructor(){
         this.#data = [];
