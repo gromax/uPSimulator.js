@@ -19,14 +19,27 @@ class AsmLine {
             throw Error(`[${line}] : erreur, vérifiez.`);
         }
         let groups = line.match(AsmLine.REGEX);
-        this.#lab = (groups[1] || '').trim();
+
+        // gestion du cas ex: MUL POP qui comprend MUL comme un label
+        let g1 = (groups[1] || '').trim();
+        let g2 = groups[2];
+        let g3 = (groups[3] || '').trim();
+        if ((g1.toUpperCase() in AsmWords) && (g3 =="")) {
+            g3 = g2;
+            g2 = g1.toUpperCase();
+            g1 = "";
+        } else {
+            g2 = g2.toUpperCase()
+        }
+
+        this.#lab = g1;
         if (this.#lab.charAt(0) == '@'){
             this.#lab = this.#lab.substring(1);
         }
         if (this.#lab.toLocaleUpperCase() in AsmWords) {
             throw Error(`[${line}] : l'étiquette [${this.#lab}] ne doit pas être une des commandes assembleur.`);
         }
-        this.#word = groups[2].toUpperCase();
+        this.#word = g2;
         if (!(this.#word in AsmWords)) {
             throw Error(`[${line}] : la commande [${this.#word}] est inconnue.`);
         }
@@ -48,7 +61,7 @@ class AsmLine {
             return;
         }
 
-        let arg = (groups[3] || '').trim();
+        let arg = g3;
         if (arg == '') {
             this.#argtype = AsmArgs.NO;
             if (!AsmWords[this.#word].NO) {
