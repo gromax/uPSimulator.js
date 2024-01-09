@@ -5,45 +5,66 @@
     <title>uP Simulator</title>
     <link rel="stylesheet" href="styles.css">
   </head>
-  <body>
-    <a href="./notice.html">Détails sur le modèle de processeur.</a>
-    <table><tr>
-      <td>
-        <h3>Pseudo python</h3>
-        <textarea id="python" class="areaProgram">
+  <body class="largeur">
+    <h1>Compilateur pour un modèle de microprocesseur</h1>
+    <h2>Qu'est-ce que c'est ?</h2>
+    <p>On utilise ici un langage simplifié apparenté à Python. 
+      On compile notre programme en pseudo-python pour obtenir un programme en <b>Assembleur</b>
+      Ce langage assembleur et le microprocesseur pour lesquel il est fait sont décrits dans cette <a href="https://wiki.goupill.fr/lib/exe/fetch.php?media=nsi:premiere:architecture:langage_asm.fiche.pdf">notice</a>.</p>
+    <p>Vous pouvez accéder directement au <a href="./up.html">simulateur</a> mais sans programme.</p>
+    <p>Pour placer un programme dans le simulateur, utilisez ce qui suit. Vous pouvez :</p>
+    <ul>
+      <li>Programmer en pseudo-python. Il faut alors compiler pour obtenir le code assembleur puis convertir en code binaire.</li>
+      <li>Programmer directement en assembleur. Il faut alors convertir en code binaire.</li>
+      <li>Programmer directement en code binaire (<i>difficile et fastidieux !</i>)</li>
+    </ul>
+    <p>Dans tous les cas, quand vous avez obtenu le code binaire, vous pouvez transférer au simulateur pour exécution.</p>
+
+    <h2>Pseudo-python</h2>
+    <p>On reprend surtout la syntaxe de Python basée sur les indentations et les « : ».</p>
+    <p>Vous avez droit aux mots clés <span class="code">while</span>, <span class="code">if</span>, <span class="code">else</span>, <span class="code">elif</span>.</p>
+    <p>Pour l'affichage, vous pouvez utiliser <span class="code">print(...)</span> en ne mettant une expression ou une variable entre les parenthèses.</p>
+    <p>Pour les saisies clavier, vous pouvez utiliser la forme <span class="code">x = input()</span>. Vous pouvez bien sûr changer le nom de variable.</p>
+    <p><b class="attention">Vous n'avez pas droit</b> aux fonctions (donc à <span class="code">def</span> et <span class="code">return</span>) et à <span class="code">for</span></p>
+    <p>Enfin, les variables ne peuvent contenir que des <b>entiers 16 bits</b>.</p>
+    <ul>
+      <li>de <span class="code">0</span> à <span class="code">65 535</span> pour des entiers non signés,</li>
+      <li>de <span class="code">-32 768</span> à <span class="code">32 767</span> pour des entiers signés.</li>
+    </ul>
+    <textarea id="python" class="program">
 x = input()
 if x > 3 and x <= 10:
     y = x + 2
 print(y)
-        </textarea>
-        <div class="buttonProgram">
-	        <input type="button" id="validpython" value="langage >> assembleur" class="buttonProgram">
-        </div>
-      </td>
-      <td>
-        <h3>Asm</h3>
-        <textarea id="asm" class="areaProgram"></textarea>
-        <div class="buttonProgram">
-          <input type="button" id="validasm" value="Assembleur >> binaire">
-        </div>
-      </td>
-      <td>
-        <h3>binaire</h3>
-        <textarea id="binary" readonly class="areaProgram"></textarea><br>
-        <div class="buttonProgram">
-          <input type="button" id="runButton" value="Exécuter">
-        </div>
-      </td>
-    </tr></table>
-
+    </textarea>
     <div>
-      <h3>log</h3>
-      <div id="error"></div>
+      <input type="button" id="validpython" value="pseudo-python >> assembleur" class="program">
     </div>
+
+    <div id="divLogPython"></div>
+
+    <h2>Assembleur</h2>
+    <p>Retrouvez la <a href="https://wiki.goupill.fr/lib/exe/fetch.php?media=nsi:premiere:architecture:langage_asm.fiche.pdf">notice</a> pour les détails de ce langage.</p>
+    <p>Une ligne de code devrait ressembler à <span class="code">loop  MULT  #45</span>. Dans ce cas <span class="code">loop</span> est une étiquette qui sert aux sauts. <span class="code">MULT</span> est le mot clé de l'instruction et <span class="code">#45</span> est l'argument.</p>
+    <p>L'étiquette est optionnelle et certaines commandes n'ont pas d'argument.</p>
+    <p>Les lignes vides sont ignorées.</p>
+    <textarea id="asm" class="program"></textarea>
+    <div>
+      <input type="button" id="validasm" value="Assembleur >> binaire" class="program">
+    </div>
+
+    <div id="divLogAsm"></div>
+
+    <h2>Binaire</h2>
+    <p>Chaque ligne d'instruction assembleur se traduit de façon univoque en un mot binaire de 16 bits. Dans des cas exceptionnel (voir <a href="https://wiki.goupill.fr/lib/exe/fetch.php?media=nsi:premiere:architecture:langage_asm.fiche.pdf">notice</a>) une ligne assembleur peut être traduite par 2 mots 16 bits successifs.</p>
+    <p>Le bouton <b>Exécuter</b> transmet le binaire au simulateur pour exécution.</p>
+    <textarea id="binary" readonly class="program"></textarea><br>
+    <div>
+      <input type="button" id="runButton" value="Exécuter" class="program">
+    </div>
+
+    <div id="divLogBinary"></div>
     
-
-
-
     <script src="index.js"></script>
   </body>
 </html>
