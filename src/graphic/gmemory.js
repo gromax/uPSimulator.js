@@ -102,6 +102,7 @@ class GMemory {
                 height:20,
                 size:12,
                 label:`${i*GMemory.PSIZE} - ${(i+1)*GMemory.PSIZE-1}`,
+                hint:`Afficher les adresses ${i*GMemory.PSIZE} à ${(i+1)*GMemory.PSIZE-1}`,
                 callback: (e) => {this.#setPage(i);}
             });
             button.move(col*51, lig*21+3)
@@ -114,9 +115,9 @@ class GMemory {
         addressText.font({ fill:'#000', family:FONT_FAMILY, PSIZE:20 });
         addressText.move(200 - addressText.length() - 5, GMemory.HEIGHT - GRegister.HEIGHT/2 - 10 );
       
-        this.#ledRD = new Led(this.#scaleGroup, {anchor:'north', label:'RD'});
+        this.#ledRD = new Led(this.#scaleGroup, {anchor:'north', label:'RD', 'hint':"Mémoire -> BUS DATA"});
         this.#ledRD.move(330, GMemory.HEIGHT);
-        this.#ledWR = new Led(this.#scaleGroup, {anchor:'north', label:'WR'});
+        this.#ledWR = new Led(this.#scaleGroup, {anchor:'north', label:'WR', 'hint':"BUS DATA -> Mémoire"});
         this.#ledWR.move(360, GMemory.HEIGHT);
         this.#arrRD = this.#scaleGroup.path(`M15 ${this.#yAnchorData} l10 -7.5 0 15 Z`).stroke('none').fill(HIGHLIGHTED_DATA_BUS.color);
         this.#arrWR = this.#scaleGroup.path(`M30 ${this.#yAnchorData} l-10 -7.5 0 15 Z`).stroke('none').fill(HIGHLIGHTED_DATA_BUS.color);
