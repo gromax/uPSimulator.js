@@ -26,6 +26,7 @@ class GRegister {
     #small;
     #width;
     #activated = true;
+    #hint;
     constructor(parent, small = false) {
         this.#small = (small == true);
         this.#register = new Register(0);
@@ -43,9 +44,15 @@ class GRegister {
         this.#baseText = baseGroup.text('');
         this.#baseText.font({fill:'#fff', family:FONT_FAMILY, size:12 });
         this.#baseText.cx(GRegister.B_WIDTH/2).cy(GRegister.HEIGHT/2);
+
+        this.#hint = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        this.#baseRect.node.appendChild(this.#hint);
+
         if (this.#small) {
+            this.#hint.textContent = "hexadécimal 8 bits. Appuyer pour changer";
             this.#fmtList = ['lowhex', 'lowbin', 'low'];
         } else {
+            this.#hint.textContent = "hexadécimal. Appuyer pour changer";
             this.#fmtList = ['hex', 'bin', 'unsigned', 'signed'];
         }
         this.setFormat(this.#fmtList[0]);
@@ -146,12 +153,12 @@ class GRegister {
     setFormat(fmt){
         this.#fmt = fmt;
         switch(fmt){
-            case 'bin': this.#baseText.text('b'); break;
-            case 'lowbin': this.#baseText.text('b'); break;
-            case 'signed':  this.#baseText.text('s'); break;
-            case 'hex':  this.#baseText.text('h'); break;
-            case 'lowhex': this.#baseText.text('h'); break;
-            default:  this.#baseText.text('u');
+            case 'bin': this.#baseText.text('b'); this.#hint.textContent = "binaire. Appuyer pour changer"; break;
+            case 'lowbin': this.#baseText.text('b'); this.#hint.textContent = "binaire 8 bits. Appuyer pour changer"; break;
+            case 'signed':  this.#baseText.text('s'); this.#hint.textContent = "entier signé. Appuyer pour changer";break;
+            case 'hex':  this.#baseText.text('h'); this.#hint.textContent = "hexadécimal. Appuyer pour changer"; break;
+            case 'lowhex': this.#baseText.text('h'); this.#hint.textContent = "hexadécimal 8 bits. Appuyer pour changer";break;
+            default:  this.#baseText.text('u'); this.#hint.textContent = "entier non signé. Appuyer pour changer";
         }
         this.#baseText.cx(GRegister.B_WIDTH/2).cy(GRegister.HEIGHT/2);
         this.#updateValueDisplay();
