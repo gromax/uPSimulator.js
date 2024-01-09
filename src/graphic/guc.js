@@ -305,6 +305,7 @@ class GUc {
     #sp;
     #messageArea;
     #decode;
+    #div;
 
     constructor(parent) {
         this.#group = parent.nested();
@@ -316,9 +317,19 @@ class GUc {
         this.#sp = (new SPBloc(this.#group)).move(570 + PLBloc.WIDTH,0);
         this.#ri = (new RIBloc(this.#group)).move(390);
 
-        let foreignObject = this.#group.foreignObject(350, 70);
-        foreignObject.add(SVG(`<div xmlns="http://www.w3.org/1999/xhtml"><textarea readonly id='ucMessage' class='ucMessage'></div>`));
-        foreignObject.move(60, 65);
+        //let foreignObject = this.#group.foreignObject(350, 70);
+        //foreignObject.add(SVG(`<div xmlns="http://www.w3.org/1999/xhtml"><textarea readonly id='ucMessage' class='ucMessage'></div>`));
+        //foreignObject.move(60, 65);
+
+        let d = document.createElement('div');
+        d.style.position = 'absolute';
+        d.style.top = '60px';
+        d.style.left = '65px';
+        document.body.appendChild(d);
+        d.innerHTML = "<textarea readonly id='ucMessage' class='ucMessage'>";
+        this.#div = d;
+
+
         this.#messageArea = document.getElementById('ucMessage');
         this.#messageArea.spellcheck = false;
 
@@ -328,6 +339,8 @@ class GUc {
 
     move(x, y) {
         this.#group.move(x, y);
+        this.#div.style.left = (67+x)+'px';
+        this.#div.style.top = (75+y)+'px';
         return this;
     }
 
