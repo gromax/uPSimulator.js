@@ -337,7 +337,7 @@ class Engine {
         if ((this.#state == STATES.READ_RI) || (this.#state == STATES.LOAD_BIG_K)) {
             return this.#pl.read();
         }
-        if ((this.#state == STATES.LOAD_A) || (this.#state == STATES.IN_A) || (this.#state = STATES.STR)) {
+        if ((this.#state == STATES.LOAD_A) || (this.#state == STATES.IN_A) || (this.#state == STATES.STR)) {
             return this.#ri.low();
         }
         if ((this.#state == STATES.LOAD_POP) || (this.#state = STATES.PUSH)) {
