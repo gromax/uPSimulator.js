@@ -107,7 +107,9 @@ class GProc {
         // boutons
         let buttons = [];
         for (let key in callbacks) {
-            let button = new Button(this.#group, { width:50, height:30, label:key, callback:callbacks[key] });
+            let c = callbacks[key][0];
+            let h = callbacks[key][1];
+            let button = new Button(this.#group, { width:50, height:30, label:key, callback:c, hint:h });
             let x = (buttons.length == 0) ? 400 : buttons[buttons.length-1].right();
             buttons.push(button);
             button.move(x, 600);
@@ -172,7 +174,7 @@ class GProc {
                 this.#addressRI.stroke(ADDRESS_BUS);
                 this.#addressPL.stroke(ADDRESS_BUS);
                 this.#addressSP.stroke(HIGHLIGHTED_ADDRESS_BUS);
-                this.#uc.setA(true);
+                this.#uc.sp.setA(true);
                 this.#addressSP.front();
                 this.#memory.setAddress(this.#uc.sp.read('low'));
                 this.#memory.activateAddress(true);
