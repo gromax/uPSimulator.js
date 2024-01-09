@@ -78,7 +78,7 @@ function execCurrent(gp, eng) {
                 break;
             case STATES.PUSH:
                 gp.memory.write(eng.memAdresse(), eng.onBus());
-                gp.sp.dec();
+                gp.uc.sp.dec();
                 break;
             case STATES.STR:
                 gp.memory.write(eng.memAdresse(), eng.onBus());
@@ -159,7 +159,7 @@ function updateSignaux(gp, eng){
             break;
         case STATES.PUSH:
             gp.setAddressBus('sp');
-            gp.sp.setDec(true);
+            gp.uc.sp.setDec(true);
             gp.setDataIO('ual', 'memory');
             break;
         case STATES.STR:
@@ -250,11 +250,12 @@ var draw = SVG().addTo('body').size(910, 650);
 
 let engine = new Engine(values);
 var proc = new GProc(draw, {
-    step:pressStep,
-    reset:reset,
-    run: function(){ pressRun(1000); },
-    vite:function(){ pressRun(500); },
-    stop:pressStop});
+    step:[pressStep, "Avancer d'un pas"],
+    reset:[reset, "Réinitialiser"],
+    run:[function(){ pressRun(1000); }, "Exécuter"],
+    vite:[function(){ pressRun(500); }, "Exécuter vite"],
+    "très vite":[function(){ pressRun(50); }, "Exécuter très vite"],
+    stop:[pressStop,"Arrêter"]});
 
 proc.memory.load(values);
 
@@ -264,9 +265,7 @@ proc.input.setCallback(function(v) { engine.writeIn(v); });
 
 
 proc.uc.showMessage(engine.stateDescription());
-
-proc.setUalP(true);
-proc.setUalZ(true);
+reset()
 updateSignaux(proc, engine);
 
 
