@@ -2,3 +2,9 @@ textarea { width: 90%; height:200px; margin:20px;}
 .inputWidget { width:70px; height: 16px; }
 .ucMessage { width:310px; height:60px; resize:none; margin:0px; }
 
+div.infos {
+    background-color: #CCC;
+    padding: 5px;
+    margin: 5px;
+}
+
