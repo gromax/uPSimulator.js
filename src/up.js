@@ -246,7 +246,7 @@ function pressStop() {
     runActif = false;
 }
 
-var draw = SVG().addTo('body').size(910, 650);
+var draw = SVG().addTo('#svg').size(910, 650);
 
 let engine = new Engine(values);
 var proc = new GProc(draw, {
