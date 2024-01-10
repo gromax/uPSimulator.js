@@ -62,17 +62,17 @@ class Ual {
             case AsmWords.MUL.code:
                 return this.#w.signed() * this.#in.signed();
             case AsmWords.DIV.code:
-                let a = this.#w.signed();
-                let b = this.#in.signed();
+                let a = this.#w.read();
+                let b = this.#in.read();
                 if (b == 0){
                     return 0;
                 }
                 return (a - a%b) / b;
             case AsmWords.MOD.code:
-                if (this.#in.signed() == 0) {
-                    return this.#w.signed();
+                if (this.#in.read() == 0) {
+                    return this.#w.read();
                 }
-                return this.#w.signed() % this.#in.signed();
+                return this.#w.read() % this.#in.read();
             case AsmWords.OR.code:
                 return this.#w.read() | this.#in.read();
             case AsmWords.AND.code:
@@ -107,13 +107,13 @@ class Ual {
             case AsmWords.SUB.code:
                 return `Soustraction : W(${this.#w.signed()}) - ${this.#in.signed()} -> W.`;
             case AsmWords.MUL.code:
-                return `Multiplication signée : W(${this.#w.signed()}) x ${this.#in.signed()} -> W.`;
+                return `Multiplication : W(${this.#w.signed()}) x ${this.#in.signed()} -> W.`;
             case AsmWords.DIV.code:
                 let a = this.#w.signed();
                 let b = this.#in.signed();
-                return `Division entière signée : W(${this.#w.signed()}) // ${this.#in.signed()} -> W.`;
+                return `Division entière non signée : W(${this.#w.signed()}) // ${this.#in.signed()} -> W.`;
             case AsmWords.MOD.code:
-                return `Modulo signé : W(${this.#w.signed()}) % ${this.#in.signed()} -> W.`;
+                return `Modulo non signé : W(${this.#w.signed()}) % ${this.#in.signed()} -> W.`;
             case AsmWords.OR.code:
                 return `OR bitwise : W(0x${this.#w.hex()}) or 0x${this.#in.hex()} -> W.`;
             case AsmWords.AND.code:
