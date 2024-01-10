@@ -25,4 +25,4 @@ Le langage assembleur et le modèle de processeur sont détaillés dans ce [docu
 
 ## Démonstration
 
-L'ensemble est utilisable à cette [adresse](htts://goupill.fr/up)
+L'ensemble est utilisable à cette [adresse](htts://goupill.fr/up/index.html).
