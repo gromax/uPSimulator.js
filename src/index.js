@@ -62,7 +62,8 @@ function run(){
     if (binary.hex == '') {
         addMessage("Aucun code à exécuter.", 'errorline', 'Binary');
     } else {
-        document.location.href=`./up.html?hex=${binary.hex}`; 
+        window.open(`./up.html?hex=${binary.hex}`, '_blank').focus();
+        //document.location.href=`./up.html?hex=${binary.hex}`; 
     }
 }
 
