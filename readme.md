@@ -21,4 +21,4 @@ La page *index.js* prévoit la transformation du pseudocode en un assembleur cus
 
 ## Langage et processeur
 
-Le langage assembleur et le modèle de processeur sont détaillés dans le document langage_asm.fiche.pdf joint.
+Le langage assembleur et le modèle de processeur sont détaillés dans ce [document](http://wiki.goupill.fr/lib/exe/fetch.php?media=nsi:premiere:architecture:langage_asm.fiche.pdf).
