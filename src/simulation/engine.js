@@ -140,6 +140,10 @@ class Engine {
         this.#memory.load(data);
     }
 
+    get lineNumber(){
+        return this.#pl.value;
+    }
+
     readMemory(adresse, format = '') {
         return this.#memory.read(adresse, format);
     }
