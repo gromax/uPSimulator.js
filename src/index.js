@@ -13,9 +13,28 @@ function submitPython(){
         let result = new Parser(source);
         asm.value = result.asm;
         addMessage("Succès !", 'validline', 'Python');
+        return result;
     } catch({type, message}) {
         addMessage(message, 'errorline', 'Python');
+        return null;
     }
+}
+
+function runPython(){
+    let p = submitPython();
+    if (p==null) {
+        return null;
+    }
+    let a = submitAsm();
+    if (a==null) {
+        return null;
+    }
+    let source = encodeURIComponent(pythonSource.value);
+    let asmCode = encodeURIComponent(asm.value);
+    let hex = binary.hex;
+    let pNumbers = encodeURIComponent(p.linesNumbers.join('_'));
+    let aNumbers = encodeURIComponent(a.linesNumbers.join('_'));
+    window.open(`./up.html?hex=${hex}&source=${source}&asm=${asmCode}&p=${pNumbers}&a=${aNumbers}`, '_blank').focus();
 }
 
 function submitAsm(){
@@ -28,8 +47,10 @@ function submitAsm(){
         binary.hex = asm.hex.join('');
         addMessage("Succès !", 'validline', 'Asm');
         //engine.load(asm.program);
+        return asm;
     } catch({type, message}) {
         addMessage(message, 'errorline', 'Asm');
+        return null;
     }
 }
 
@@ -58,7 +79,6 @@ function addMessage(message, c, cible) {
 }
 
 function run(){
-
     if (binary.hex == '') {
         addMessage("Aucun code à exécuter.", 'errorline', 'Binary');
     } else {
@@ -68,6 +88,7 @@ function run(){
 }
 
 let pythonButton = document.getElementById('validpython');
+let runPythonButton = document.getElementById('runpython');
 let asmButton = document.getElementById('validasm');
 let runButton = document.getElementById('runButton');
 let pythonSource = document.getElementById('python');
@@ -81,5 +102,6 @@ binary.hex = "";
 /*let engine = new Engine();*/
 
 pythonButton.addEventListener('click', submitPython);
+runPythonButton.addEventListener('click', runPython);
 asmButton.addEventListener('click', submitAsm);
 runButton.addEventListener('click', run);
