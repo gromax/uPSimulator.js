@@ -1,12 +1,45 @@
 import { SVG } from '@svgdotjs/svg.js';
 import { GProc } from './graphic/gproc';
 
-import { GET, hexToValues } from './utils';
+import { GET, hexToValues, getItem } from './utils';
 
 import { Engine, STATES, DATA_BUS } from './simulation/engine';
 
+import { Box } from './codebox/box';
+
 let hex = GET('hex') || '';
+let python = decodeURIComponent(GET('source') || '');
+let asm = decodeURIComponent(GET('asm') || '');
 let values = hexToValues(hex);
+let asmToPythonStr = decodeURIComponent(GET('p') || '');
+let binToAsmStr = decodeURIComponent(GET('a') || '');
+
+let asmToPython = null;
+if (asmToPythonStr != '') {
+    asmToPython = _.map(asmToPythonStr.split('_'), function(item){ return Number(item);});
+}
+
+let binToAsm = null;
+if (binToAsmStr != '') {
+    binToAsm = _.map(binToAsmStr.split('_'), function(item){ return Number(item);});
+}
+
+
+let pythonbox = null;
+if (python != '') {
+    pythonbox = new Box(python, document.getElementById('pythoncode'), 'Pseudo Python');
+    pythonbox.setXY(10,10);
+    pythonbox.reduce();
+}
+
+let asmbox = null;
+if (asm != '') {
+    asmbox = new Box(asm, document.getElementById('asmcode'), 'Assembleur');
+    asmbox.setXY(200,10);
+    asmbox.reduce();
+}
+
+
 
 
 /**
@@ -109,6 +142,16 @@ function updateSignaux(gp, eng){
     gp.offAll();
     switch(state) {
         case STATES.READ_RI:
+            let nBin = eng.lineNumber;
+            let nAsm = getItem(binToAsm, nBin);
+            let nPython = getItem(asmToPython, nAsm);
+            if (pythonbox){
+                pythonbox.highlight(nPython);
+            }
+            if (asmbox) {
+                asmbox.highlight(nAsm);
+            }
+            
             gp.setAddressBus('pl');
             gp.setDataIO('memory', 'ri');
             gp.uc.pl.setInc(true);
@@ -210,6 +253,8 @@ function reset(){
     updateSignaux(proc, engine);
 }
 
+
+
 let runActif = false;
 let tempo = 500;
 function runStep() {
@@ -267,6 +312,5 @@ proc.input.setCallback(function(v) { engine.writeIn(v); });
 proc.uc.showMessage(engine.stateDescription());
 reset()
 updateSignaux(proc, engine);
-
 
 
