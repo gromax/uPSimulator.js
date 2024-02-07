@@ -290,6 +290,10 @@ class AsmLines {
         this.#linesNumbers = _.flatten(_.map(this.#lines, function(item){return item.binary_to_line_assoc()} ));
     }
 
+    get linesNumbers(){
+        return _.clone(this.#linesNumbers);
+    }
+
     static parseLine(line, lineNumber=-1) {
         line = line.trim();
         if (line == '') {
