@@ -5,10 +5,12 @@ import { NodeType, OpType } from '../constantes';
 
 
 class Parser {
-    static parse(text) {
-        /* Produit le parse du programme contenu dans text
+    #asm;
+    #linesNumbers;
+    constructor(pythonCode) {
+        /* Produit le parse du programme contenu dans pythonCode
         */
-        let lines = text.split('\n');
+        let lines = pythonCode.split('\n');
         let parsed_lines = []
         for(let i=0; i<lines.length; i++) {
             let line = lines[i];
@@ -33,7 +35,17 @@ class Parser {
         nodes[0].type = NodeType.LAST;
         Parser.#clear_useless(nodes);
         Parser.#decompose_jump(nodes);
-        return Parser.#asm(_.reverse(nodes));
+        let result = Parser.#make_asm(_.reverse(nodes));
+        this.#asm = result[0];
+        this.#linesNumbers = result[1];
+    }
+
+    get asm() {
+        return this.#asm.join('\n');
+    }
+
+    get linesNumbers() {
+        return _.clone(this.#linesNumbers);
     }
 
     static #verify_indents(lines) {
@@ -351,7 +363,7 @@ class Parser {
         }
     }
 
-    static #asm(nodes) {
+    static #make_asm(nodes) {
         /* transforme la suite de noeuds en asm */
         // récupérer la liste de labels utiles
         let labels = {};
@@ -363,6 +375,7 @@ class Parser {
             }
         }
         let asm = [];
+        let lineNumbers = [];
         for (let i=0; i<nodes.length; i++) {
             let node = nodes[i];
             let asm_node = null;            
@@ -387,8 +400,9 @@ class Parser {
                 asm_node[0] = labels[node.tag] + asm_node[0];
             }
             asm.push(asm_node);
+            lineNumbers.push(_.fill(Array(asm_node.length), node.number>0?node.number-1:-1));
         }
-        return _.flatten(asm).join('\n');
+        return [_.flatten(asm), _.flatten(lineNumbers)];
     }
 }
 

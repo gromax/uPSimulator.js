@@ -12,8 +12,12 @@ class AsmLine {
     #argtype;
     #size = 1;
     #line;
-    constructor(line) {
-        /* reçoit une ligne et en analyse le contenu */
+    #lineNumber;
+    constructor(line, lineNumber=-1) {
+        /* reçoit une ligne et en analyse le contenu
+           lineNumber: rang de la ligne dans le code d'origine
+        */
+        this.#lineNumber = lineNumber;
         this.#line = line;
         if (! AsmLine.REGEX.test(line)) {
             throw Error(`[${line}] : erreur, vérifiez.`);
@@ -196,6 +200,11 @@ class AsmLine {
         }
         return this.#opcode() << 8;
     }
+
+    binary_to_line_assoc() {
+        /* renvoie un  tableau contenant #size fois #lineNumber */
+        return _.fill(Array(this.#size), this.#lineNumber);
+    }
 }
 
 class AsmLines {
@@ -203,12 +212,13 @@ class AsmLines {
     #size;
     #labels;
     #binary;
+    #linesNumbers;
     constructor(program) {
         this.#lines = [];
         let plines = program.split('\n');
         let currentlab = '';
         for (let i=0; i<plines.length; i++) {
-            let p = AsmLines.parseLine(plines[i]);
+            let p = AsmLines.parseLine(plines[i], i);
             if (p === null) {
                 continue;
             }
@@ -277,9 +287,10 @@ class AsmLines {
         }
         let labels = this.#labels;
         this.#binary = _.flatten(_.map(this.#lines, function(item){return item.to_number(labels)}));
+        this.#linesNumbers = _.flatten(_.map(this.#lines, function(item){return item.binary_to_line_assoc()} ));
     }
 
-    static parseLine(line) {
+    static parseLine(line, lineNumber=-1) {
         line = line.trim();
         if (line == '') {
             return null;
@@ -288,7 +299,7 @@ class AsmLines {
             // simple label à reporter sur la ligne suivante
             return line;
         }
-        return new AsmLine(line);
+        return new AsmLine(line, lineNumber);
     }
 
     get binary() {

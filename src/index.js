@@ -10,8 +10,8 @@ function submitPython(){
     let source = pythonSource.value;
     addMessage("Compilation &rarr; ASM...", false, 'Python');
     try {
-        let result = Parser.parse(source);
-        asm.value = result;
+        let result = new Parser(source);
+        asm.value = result.asm;
         addMessage("Succès !", 'validline', 'Python');
     } catch({type, message}) {
         addMessage(message, 'errorline', 'Python');
