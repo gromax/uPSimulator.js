@@ -8,3 +8,47 @@ div.infos {
     margin: 5px;
 }
 
+
+div.boxcontainer {
+    position:absolute;
+    padding:5px;
+    background-color: #CCC;
+    z-index: 10;
+}
+
+div.boxtitle {
+    padding: 2px;
+    cursor: move;
+}
+
+div.boxcontent {
+    padding: 2px;
+    background-color: #fff;
+    font-family: ui-monospace;
+}
+
+button.boxbutton {
+    padding: 1px;
+}
+
+.invisible {
+    display:none;
+}
+
+.boxitem {
+    margin:0px;
+}
+
+span.tag {
+    display:inline-block;
+    min-width: 3em;
+}
+
+.boxitem:nth-child(even) {
+    background-color: #eee;
+}
+
+.highlight {
+    background-color: rgb(3, 68, 3) !important;
+    color:#fff;
+}
