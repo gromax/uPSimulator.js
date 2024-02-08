@@ -9,14 +9,14 @@ div.infos {
 }
 
 
-div.boxcontainer {
+div.boxcontainer, div.vboxcontainer {
     position:absolute;
     padding:5px;
     background-color: #CCC;
     z-index: 10;
 }
 
-div.boxtitle {
+div.boxtitle, div.vboxtitle {
     padding: 2px;
     cursor: move;
 }
@@ -51,4 +51,16 @@ span.tag {
 .highlight {
     background-color: rgb(3, 68, 3) !important;
     color:#fff;
+}
+
+table.vbox tr:nth-child(even) {
+    background-color: #eee;
+}
+table.vbox tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+table.vbox td, table.vbox th {
+    padding:5px 8px;
+    text-align: center;
 }
