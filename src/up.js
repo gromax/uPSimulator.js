@@ -4,6 +4,7 @@ import { GProc } from './graphic/gproc';
 import { GET, hexToValues } from './utils/misc';
 import { Engine, STATES, DATA_BUS } from './simulation/engine';
 import { Box } from './utils/box';
+import { VBox } from './utils/variablesbox';
 import { Linker } from './utils/linker';
 
 let link = new Linker({
@@ -27,6 +28,17 @@ if (link.asm != '') {
     asmbox.setXY(200,10);
     asmbox.reduce();
 }
+
+let vbox = null;
+{
+    let variables = link.variables;
+    if (Object.keys(variables).length > 0) {
+        vbox = new VBox(variables, document.getElementById('variables'));
+        vbox.setXY(10,50);
+        vbox.reduce();
+    }
+}
+
 
 
 /**
@@ -287,7 +299,11 @@ var proc = new GProc(draw, {
     "très vite":[function(){ pressRun(50); }, "Exécuter très vite"],
     stop:[pressStop,"Arrêter"]});
 
+if (vbox){
+    proc.memory.link(vbox.variablesNodes);
+}
 proc.memory.load(values);
+
 
 proc.input.setCallback(function(v) { engine.writeIn(v); });
 
