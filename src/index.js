@@ -7,7 +7,7 @@ import { AsmLines } from './compile/parseasm';
 
 
 function submitPython(){
-    /* prend le contenu de la boîte Python,
+   /* prend le contenu de la boîte Python,
        compile et produit l'asm dans la boîte Asm
        renvoie un message journal
     */
