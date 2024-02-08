@@ -290,6 +290,19 @@ class AsmLines {
         this.#linesNumbers = _.flatten(_.map(this.#lines, function(item){return item.binary_to_line_assoc()} ));
     }
 
+    get variables(){
+        let dico = {};
+        for (let v in this.#labels){
+            if (this.#labels[v].asm.isdat) {
+                dico[v] = {
+                    line:this.#labels[v].number,
+                    value:this.#labels[v].asm.to_number(this.#labels)
+                }
+            }
+        }
+        return dico;
+    }
+
     get linesNumbers(){
         return _.clone(this.#linesNumbers);
     }
