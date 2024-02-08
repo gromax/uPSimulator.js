@@ -1,4 +1,4 @@
-import { replaceSpace } from '../utils';
+import { replaceSpace } from './misc';
 
 class Box {
     #codeLines;

@@ -1,7 +1,7 @@
 /* bloc affichant le décodage instruction */
 
 import { FONT_FAMILY } from "./styles";
-import { decToRadix } from "../utils";
+import { decToRadix } from "../utils/misc";
 
 class DecodeRI {
     static HEIGHT = 50;

@@ -1,7 +1,7 @@
 import { GRegister } from "./gregister";
 import { Button } from "./button";
 import { Led } from "./led";
-import { div } from "../utils";
+import { div } from "../utils/misc";
 
 import {
     DATA_BUS,
