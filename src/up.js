@@ -1,11 +1,11 @@
 import { SVG } from '@svgdotjs/svg.js';
 import { GProc } from './graphic/gproc';
 
-import { GET, hexToValues, getItem } from './utils';
+import { GET, hexToValues, getItem } from './utils/misc';
 
 import { Engine, STATES, DATA_BUS } from './simulation/engine';
 
-import { Box } from './codebox/box';
+import { Box } from './utils/box';
 
 let hex = GET('hex') || '';
 let python = decodeURIComponent(GET('source') || '');

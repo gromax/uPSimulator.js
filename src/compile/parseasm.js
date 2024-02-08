@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { AsmArgs, AsmWords } from './asmconstantes';
-import { decToBin, decToHex } from '../utils';
+import { decToBin, decToHex } from '../utils/misc';
 
 
 class AsmLine {
