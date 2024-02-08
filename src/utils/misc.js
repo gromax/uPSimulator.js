@@ -16,6 +16,11 @@ function decToHex(n) {
 const SYMBOLS = '0123456789ABCDEF';
 
 function decToRadix(n, radix, size){
+    /* n: nombre à convertir
+       radix: base, 16 ou 2
+       size: nombre de symboles
+       Renvoie une écriture de n dans la base voulue
+    */
     if ((n < 0) || (n > 65535)) {
         throw Error(`[decToBin(${n})] La fonction ne permet de convertir qu'entre 0 et 65535`);
     }
