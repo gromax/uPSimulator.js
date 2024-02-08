@@ -14,6 +14,7 @@ class Linker {
     #line = -1;
     #asmLine = -1;
     #pythonLine = -1;
+    #variables = null;
 
     constructor(option) {
         let python = option.python || '';
@@ -38,6 +39,7 @@ class Linker {
                 let asmParsed = new AsmLines(asm);
                 hex = asmParsed.hex.join('');
                 this.#binaryToAsm = asmParsed.linesNumbers;
+                this.#variables = asmParsed.variables;
             } catch({type, message}) {
                 console.log(message);
                 alert("Le code assembleur est invalide  !");
@@ -45,7 +47,7 @@ class Linker {
             }
         }
         this.#hex = hex;
-
+        
     }
 
     get asm() {
@@ -58,6 +60,10 @@ class Linker {
 
     get hex() {
         return this.#hex;
+    }
+
+    get variables() {
+        return this.#variables;
     }
 
     setLine(n) {
