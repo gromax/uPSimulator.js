@@ -76,19 +76,10 @@ function GET(param) {
     return vars;
 }
 
-function getItem(tab, index) {
-    /* renvoie l'item de rang i s'il existe sinon -1 */
-    if (!tab) {
-        return -1;
-    }
-    if ((index<0) || (index>=tab.length)) {
-        return -1;
-    }
-    return tab[index];
-}
+
 
 function replaceSpace(chaine) {
     return chaine.replaceAll(' ', '\u00A0')
 }
 
-export { isString, decToBin, decToHex, strToInt, div, hexToValues, GET, decToRadix, getItem, replaceSpace };
+export { isString, decToBin, decToHex, strToInt, div, hexToValues, GET, decToRadix, replaceSpace };
