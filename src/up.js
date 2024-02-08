@@ -8,14 +8,11 @@ import { Linker } from './utils/linker';
 
 let link = new Linker({
     hex:GET('hex'),
-    python:decodeURIComponent(GET('python') || '')
+    python:decodeURIComponent(GET('python') || ''),
+    asm:decodeURIComponent(GET('asm') || '')
  });
 
-
 let values = hexToValues(link.hex);
-//let asmToPythonStr = decodeURIComponent(GET('p') || '');
-//let binToAsmStr = decodeURIComponent(GET('a') || '');
-
 
 let pythonbox = null;
 if (link.python != '') {
