@@ -287,6 +287,18 @@ class GMemory {
         this.#registers[address].setValue(value);
     }
 
+    read(address, fmt) {
+        return this.#registers[address].read(fmt);
+    }
+
+    link(nodes) {
+        /* nodes: dictionnaire de forme {adresse:node}
+           relie les gregister concernés pour qu'ils mettent à jour le node à chaque changement */
+        for (let adresse in nodes) {
+            this.#registers[adresse].link(nodes[adresse])
+        }
+    }
+
 }
 
 export { GMemory }

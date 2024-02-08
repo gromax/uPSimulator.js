@@ -14,6 +14,7 @@ class GRegister {
     static SMALLFONT = { fill:'#000', family:FONT_FAMILY, size:10 };
     static H_STROKE = { color: '#f00', width: 2, linecap: 'round', linejoin: 'round' };
     static STROKE = { color: '#000', width: 2, linecap: 'round', linejoin: 'round' };
+    #node=null;
     #back;
     #group;
     #text;
@@ -105,6 +106,14 @@ class GRegister {
         this.#text.text(`${this.#register.read(this.#fmt)}`);
         let width = this.#text.length();
         this.#text.move(this.width - GRegister.RPADDING - width, GRegister.HEIGHT - GRegister.BPADDING - 20);
+
+        if (this.#node) {
+            if (this.#fmt == 'hex') {
+                this.#node.innerHTML = '0x'+this.read();    
+            } else {
+                this.#node.innerHTML = this.read();
+            }
+        }
     }
 
     #updateValueDisplayBinSmall(){
@@ -120,6 +129,10 @@ class GRegister {
         this.#text.text(text.substring(4,8));
         this.#text.move(this.width - GRegister.RPADDING - this.#text.length(), GRegister.HEIGHT - GRegister.BPADDING - 10);
         this.#text2.move(this.width - GRegister.RPADDING - this.#text2.length(), GRegister.HEIGHT - GRegister.BPADDING - 2*10 - 2);
+
+        if (this.#node) {
+            this.#node.innerHTML = '0b'+this.read();
+        }
     }
 
     #updateValueDisplayBin(){
@@ -134,6 +147,10 @@ class GRegister {
         this.#text.text(`${text.substring(8,12)} ${text.substring(12,16)}`);
         this.#text.move(this.width - GRegister.RPADDING - this.#text.length(), GRegister.HEIGHT - GRegister.BPADDING - 10);
         this.#text2.move(this.width - GRegister.RPADDING - this.#text2.length(), GRegister.HEIGHT - GRegister.BPADDING - 2*10 - 2);
+
+        if (this.#node) {
+            this.#node.innerHTML = '0b'+this.read();
+        }
     }
 
     highlight(value){
@@ -262,11 +279,19 @@ class GRegister {
     }
 
     read(fmt) {
+        fmt = fmt || this.#fmt;
         return this.#register.read(fmt);
     }
 
     get active() {
         return this.#activated;
+    }
+
+    link(node){
+        /* attache le register à un node
+           pour qu'il le mette à jour à chaque changement */
+        this.#node = node;
+        this.#node.innerHTML = this.read();
     }
 
 }
