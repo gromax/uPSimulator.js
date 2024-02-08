@@ -17,14 +17,18 @@ let values = hexToValues(link.hex);
 
 let pythonbox = null;
 if (link.python != '') {
-    pythonbox = new Box(link.python, document.getElementById('pythoncode'), 'Pseudo Python');
+    let node = document.createElement("div");
+    document.body.appendChild(node);
+    pythonbox = new Box(link.python, node, 'Pseudo Python');
     pythonbox.setXY(10,10);
     pythonbox.reduce();
 }
 
 let asmbox = null;
 if (link.asm != '') {
-    asmbox = new Box(link.asm, document.getElementById('asmcode'), 'Assembleur');
+    let node = document.createElement("div");
+    document.body.appendChild(node);
+    asmbox = new Box(link.asm, node, 'Assembleur');
     asmbox.setXY(200,10);
     asmbox.reduce();
 }
@@ -33,7 +37,9 @@ let vbox = null;
 {
     let variables = link.variables;
     if (Object.keys(variables).length > 0) {
-        vbox = new VBox(variables, document.getElementById('variables'));
+        let node = document.createElement("div");
+        document.body.appendChild(node);
+        vbox = new VBox(variables, node);
         vbox.setXY(10,50);
         vbox.reduce();
     }
