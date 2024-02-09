@@ -15,23 +15,15 @@ let link = new Linker({
 
 let values = hexToValues(link.hex);
 
-let pythonbox = null;
-if (link.python != '') {
-    let node = document.createElement("div");
-    document.body.appendChild(node);
-    pythonbox = new Box(link.python, node, 'Pseudo Python');
-    pythonbox.setXY(10,10);
-    pythonbox.reduce();
-}
+/* en l'absence de code python, pythonbox est une coquille vide */
+let pythonbox = new Box(link.python, 'Pseudo Python');
+pythonbox.setXY(10,10);
+pythonbox.reduce();
 
-let asmbox = null;
-if (link.asm != '') {
-    let node = document.createElement("div");
-    document.body.appendChild(node);
-    asmbox = new Box(link.asm, node, 'Assembleur');
-    asmbox.setXY(200,10);
-    asmbox.reduce();
-}
+/* en l'absence de code asm, asmbox est une coquille vide */
+let asmbox = new Box(link.asm, 'Assembleur');
+asmbox.setXY(200,10);
+asmbox.reduce();
 
 let vbox = null;
 {
@@ -148,13 +140,8 @@ function updateSignaux(gp, eng){
     switch(state) {
         case STATES.READ_RI:
             link.setLine(eng.lineNumber);
-            if (pythonbox){
-                pythonbox.highlight(link.pythonLine);
-            }
-            if (asmbox) {
-                asmbox.highlight(link.asmLine);
-            }
-            
+            pythonbox.highlight(link.pythonLine);
+            asmbox.highlight(link.asmLine);
             gp.setAddressBus('pl');
             gp.setDataIO('memory', 'ri');
             gp.uc.pl.setInc(true);
@@ -254,6 +241,9 @@ function reset(){
     proc.setUalZ(true);
     proc.uc.showMessage(engine.stateDescription());
     updateSignaux(proc, engine);
+
+    pythonbox.highlight(-1);
+    asmbox.highlight(-1);
 }
 
 

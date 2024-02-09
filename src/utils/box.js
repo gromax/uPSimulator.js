@@ -3,17 +3,22 @@ import { replaceSpace } from './misc';
 class Box {
     #codeLines;
     #nodes;
-    #container;
+    #container = null;
     #titlebar;
     #x;
     #y;
     #mouseUpHandler;
     #mouseMoveHandler;
     #button;
-    #content;
+    #content = null;
 
-    constructor(code, container, title) {
-        this.#container = container;
+    constructor(code, title) {
+        this.#nodes = [];
+        if (code == '') {
+            return;
+        }
+        this.#container = document.createElement("div");
+        document.body.appendChild(this.#container);
         this.#container.classList.add('boxcontainer');
         this.#titlebar = document.createElement("div");
         this.#button = document.createElement("button");
@@ -27,7 +32,6 @@ class Box {
         this.#content.classList.add('boxcontent');
         this.#container.appendChild(this.#content);
         this.#codeLines = code.split('\n');
-        this.#nodes = [];
         for (let i=0; i<this.#codeLines.length;i++) {
             let line = replaceSpace(this.#codeLines[i]);
             let itab = line.indexOf('\t');
@@ -78,15 +82,24 @@ class Box {
     }
 
     reduce(e) {
+        if (this.#content == null) {
+            return;
+        }
         this.#content.classList.toggle('invisible');
     }
 
     move(dx, dy) {
+        if (this.#container == null) {
+            return;
+        }
         this.#container.style.left = (this.#container.offsetLeft  + dx) + 'px';
         this.#container.style.top = (this.#container.offsetTop + dy) + 'px';
     }
 
     setXY(x,y) {
+        if (this.#container == null) {
+            return;
+        }
         this.#container.style.left = x + 'px';
         this.#container.style.top = y + 'px';
     }
