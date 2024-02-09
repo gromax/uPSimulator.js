@@ -63,7 +63,7 @@ class Linker {
     }
 
     get variables() {
-        return this.#variables;
+        return this.#variables || {};
     }
 
     setLine(n) {
