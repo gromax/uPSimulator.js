@@ -42,10 +42,6 @@ function runPython(){
     }
     // succès, le python peut être envoyé
     let source = encodeURIComponent(pythonSource.value);
-    //let asmCode = encodeURIComponent(asm.value);
-    //let hex = binary.hex;
-    //let pNumbers = encodeURIComponent(p.linesNumbers.join('_'));
-    //let aNumbers = encodeURIComponent(a.linesNumbers.join('_'));
     window.open(`./up.html?python=${source}`, '_blank').focus();
 }
 
@@ -71,6 +67,22 @@ function submitAsm(cibleLog = 'Asm'){
         addMessage(message, 'errorline', cibleLog);
         return null;
     }
+}
+
+function runAsm(){
+    /* prend le contenu de la boîte Asm
+       tente la traduction en binaire
+       et envoie l'exécution
+       les logs sont envoyés dans la même boîte
+       en cas de succès, envoie la fenêtre de simulation avec la clé contenant le code asm
+    */
+    let a = submitAsm('Python');
+    if (a==null) {
+        return null;
+    }
+    // succès, le python peut être envoyé
+    let source = encodeURIComponent(asm.value);
+    window.open(`./up.html?asm=${source}`, '_blank').focus();
 }
 
 function getLogBox(name) {
@@ -109,6 +121,7 @@ function run(){
 let pythonButton = document.getElementById('validpython');
 let runPythonButton = document.getElementById('runpython');
 let asmButton = document.getElementById('validasm');
+let runAsmButton = document.getElementById('runasm');
 let runButton = document.getElementById('runButton');
 let pythonSource = document.getElementById('python');
 let asm = document.getElementById('asm');
@@ -123,4 +136,5 @@ binary.hex = "";
 pythonButton.addEventListener('click', submitPython);
 runPythonButton.addEventListener('click', runPython);
 asmButton.addEventListener('click', submitAsm);
+runAsmButton.addEventListener('click', runAsm);
 runButton.addEventListener('click', run);
