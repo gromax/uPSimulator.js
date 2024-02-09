@@ -57,44 +57,40 @@ function execCurrent(gp, eng) {
                 break;
             case STATES.HALT:
                 break;
-            case STATES.LOAD_K:
-                if (eng.outDataBus() == DATA_BUS.OUT) {
-                    gp.out.add(eng.onBus());
-                } else {
-                    gp.ual.setIn(eng.onBus());
-                }
+            case STATES.OUT_K:
+                gp.out.add(eng.onBus());
                 break;
-            case STATES.LOAD_BIG_K:
-                if (eng.outDataBus() == DATA_BUS.OUT) {
-                    gp.out.add(eng.onBus());
-                } else {
-                    gp.ual.setIn(eng.onBus());
-                }
+            case STATES.LOAD_K:
+                gp.ual.setIn(eng.onBus());
+                break;
+            case STATES.OUT_BIG_K:
+                gp.out.add(eng.onBus());
                 gp.uc.pl.inc();
                 break;
+            case STATES.LOAD_BIG_K:
+                gp.ual.setIn(eng.onBus());
+                gp.uc.pl.inc();
+                break;
+            case STATES.OUT_A:
+                gp.out.add(eng.onBus());
+                break;
             case STATES.LOAD_A:
-                if (eng.outDataBus() == DATA_BUS.OUT) {
-                    gp.out.add(eng.onBus());
-                } else {
-                    gp.ual.setIn(eng.onBus());
-                }
+                gp.ual.setIn(eng.onBus());
                 break;
             case STATES.INC_POP:
                 gp.uc.sp.inc();
                 break;
-            case STATES.LOAD_POP:
-                if (eng.outDataBus() == DATA_BUS.OUT) {
-                    gp.out.add(eng.onBus());
-                } else {
-                    gp.ual.setIn(eng.onBus());
-                }
+            case STATES.OUT_POP:
+                gp.out.add(eng.onBus());
                 break;
-            case STATES.LOAD_NO: 
-                if (eng.outDataBus() == DATA_BUS.OUT) {
-                    gp.out.add(eng.onBus());
-                } else {
-                    gp.ual.setIn(eng.onBus());
-                }
+            case STATES.LOAD_POP:
+                gp.ual.setIn(eng.onBus());
+                break;
+            case STATES.OUT_W: 
+                gp.out.add(eng.onBus());
+                break;
+            case STATES.LOAD_W: 
+                gp.ual.setIn(eng.onBus());
                 break;
             case STATES.BUFF_IN:
                 break;
@@ -102,7 +98,7 @@ function execCurrent(gp, eng) {
                 gp.input.purge();
                 gp.memory.write(eng.memAdresse(), eng.onBus());
                 break;
-            case STATES.INW:
+            case STATES.IN_W:
                 gp.input.purge();
                 gp.ual.writeIn(eng.onBus());
                 break;
@@ -135,7 +131,6 @@ function updateSignaux(gp, eng){
        eng: moteur de processeur
     */
     let state = eng.state;
-    let wr;
     gp.offAll();
     switch(state) {
         case STATES.READ_RI:
@@ -151,32 +146,46 @@ function updateSignaux(gp, eng){
             break;
         case STATES.HALT:
             break;
-        case STATES.LOAD_K:
-            wr = (eng.outDataBus() == DATA_BUS.OUT) ? 'output' : 'ual';
-            gp.setDataIO('ri', wr);
+        case STATES.OUT_K:
+            gp.setDataIO('ri', 'output');
             break;
-        case STATES.LOAD_BIG_K:
-            wr = (eng.outDataBus() == DATA_BUS.OUT) ? 'output' : 'ual';
+        case STATES.LOAD_K:
+            gp.setDataIO('ri', 'ual');
+            break;
+        case STATES.OUT_BIG_K:
             gp.setAddressBus('pl');
             gp.uc.pl.setInc(true);
-            gp.setDataIO('memory', wr);
+            gp.setDataIO('memory', 'output');
+            break;
+        case STATES.LOAD_BIG_K:
+            gp.setAddressBus('pl');
+            gp.uc.pl.setInc(true);
+            gp.setDataIO('memory', 'ual');
+            break;
+        case STATES.OUT_A:
+            gp.setAddressBus('ri');
+            gp.setDataIO('memory', 'output');
             break;
         case STATES.LOAD_A:
-            wr = (eng.outDataBus() == DATA_BUS.OUT) ? 'output' : 'ual';
             gp.setAddressBus('ri');
-            gp.setDataIO('memory', wr);
+            gp.setDataIO('memory', 'ual');
             break;
         case STATES.INC_POP:
             gp.uc.sp.setInc(true);
             break;
-        case STATES.LOAD_POP:
-            wr = (eng.outDataBus() == DATA_BUS.OUT) ? 'output' : 'ual';
+        case STATES.OUT_POP:
             gp.setAddressBus('sp');
-            gp.setDataIO('memory', wr);
+            gp.setDataIO('memory', 'output');
             break;
-        case STATES.LOAD_NO: 
-            wr = (eng.outDataBus() == DATA_BUS.OUT) ? 'output' : 'ual';
-            gp.setDataIO('ual', wr);
+        case STATES.LOAD_POP:
+            gp.setAddressBus('sp');
+            gp.setDataIO('memory', 'ual');
+            break;
+        case STATES.OUT_W: 
+            gp.setDataIO('ual', 'output');
+            break;
+        case STATES.LOAD_W: 
+            gp.setDataIO('ual', 'ual');
             break;
         case STATES.BUFF_IN:
             if (eng.needInput) {

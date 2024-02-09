@@ -10,25 +10,30 @@ import { Memory } from './memory';
 import { Buffer } from './buffer';
 
 const STATES = {
-    READ_RI       : 0,
-    DECODE_RI     : 1,
-    HALT          : 2,  
-    LOAD_K        : 3,
-    LOAD_BIG_K    : 4,
-    LOAD_A        : 5,
-    LOAD_POP      : 6,
-    LOAD_NO       : 7,
-    BUFF_IN       : 9,
-    IN_A          : 10,
-    INW           : 11,
-    EXEC_UAL      : 12,
-    PUSH          : 13,
-    STR           : 14,
-    JMP           : 15,
-    FIN_INSTR     : 16,
-    START         : 17,
-    INC_POP       : 18,
-    ERROR         : 19,
+    READ_RI       : 0,  // transfert mot programme dans registre instruction
+    DECODE_RI     : 1,  // décodage registre instruction
+    HALT          : 2,  // fin du programme
+    OUT_K         : 3,  // littéral vers sortie
+    LOAD_K        : 4,  // littéral vers UAL
+    OUT_BIG_K     : 5,  // grand littéral vers sortie
+    LOAD_BIG_K    : 6,  // grand littéral vers UAL
+    OUT_A         : 7,  // Mémoire vers sortie
+    LOAD_A        : 8,  // mémoire vers UAL
+    OUT_W         : 9,  // Envoie W vers sortie
+    LOAD_W        : 10, // Envoie W vers UAL
+    OUT_POP       : 11, // Contenu poppé vers la sortie
+    LOAD_POP      : 12, // Contenu poppé vers UAL
+    BUFF_IN       : 13, // Attente saisie
+    IN_A          : 14, // Envoie IN vers mémoire
+    IN_W          : 15, // Envoie IN vers W
+    EXEC_UAL      : 16, // Exécute l'opération UAL
+    PUSH          : 17, // Met W sur la pile
+    STR           : 18, // Stocke W dans la mémoire
+    JMP           : 19, // Saut
+    FIN_INSTR     : 20, // Fin instruction
+    START         : 21, // Démarrage
+    INC_POP       : 22, // Incrémente pointeur de pile
+    ERROR         : 23, // Erreur
 }
 
 /*
@@ -45,42 +50,66 @@ const STATES = {
     -> INP : BUFF_IN
     -> Branchement satisfait : JMP
     -> Branchement non satisfait : FIN_INSTR
+    -> OUT & type K & grand K: OUT_BIG_K
+    -> OUT & type K: OUT_K
+    -> OUT & type A: OUT_A
+    -> OUT & type N: OUT W
 
     -> type K & grand K: LOAD_GK
     -> type K & !grand K: LOAD_K
-    -> type A : LOAD_A ***
+    -> type A : LOAD_A
     -> type P || POP: INC_POP
+    -> type N: LOAD_W
 - HALT:
     -> HALT
+- OUT_K:
+    RI.LOW -> OUT
+    -> FIN_INSTR
 - LOAD_K:
-    RI.LOW -> OUT (si out) | UAL (sinon)
-    -> FIN_INSTR (si out) | EXEC_UAL (sinon)
+    RI.LOW -> UAL
+    -> EXEC_UAL
+- OUT_BIG_K:
+    PL->@,  PL++
+    MEM-> OUT,
+    -> FIN_INSTR
 - LOAD_BIG_K:
     PL->@,  PL++
-    MEM-> OUT (si out)  | UAL (sinon),
-    -> FIN_INSTR (si out) | EXEC_UAL (sinon)
+    MEM-> UAL,
+    -> EXEC_UAL
+- OUT_A:
+    RI.LOW -> @
+    MEM-> OUT,
+    -> FIN_INSTR
 - LOAD_A:
     RI.LOW -> @
-    MEM-> OUT (si out)  | UAL (sinon),
-    -> FIN_INSTR (si out) | EXEC_UAL (sinon)
+    MEM-> UAL,
+    -> EXEC_UAL
 - INC_POP:
     SP++
-    -> LOAD_POP
+    -> OUT: OUT_POP
+    -> sinon : LOAD_POP
+- OUT_POP:
+    SP->@,
+    MEM -> OUT
+    -> FIN_INSTR
 - LOAD_POP:
     SP->@,
-    MEM -> OUT (si out) | UAL (sinon)
-    -> FIN_INSTR (si out) | EXEC_UAL (sinon)
-- LOAD_NO :
-    W -> OUT (si out) | UAL (sinon)
-    -> FIN_INSTR (si out) | EXEC_UAL (sinon)
+    MEM -> UAL
+    -> EXEC_UAL
+- OUT_W :
+    W -> OUT
+    -> FIN_INSTR
+- LOAD_W :
+    W -> UAL
+    -> EXEC_UAL
 - BUFF_IN:
     signal buffer in
-    -> INA (si type A) INW (sinon)
+    -> INA (si type A) IN_W (sinon)
 - IN_A:
     RI.LOW -> @
     IN -> MEM
     -> FIN_INSTR
-- INW:
+- IN_W:
     IN -> UAL
     -> EXEC_UAL
 - EXEC_UAL:
@@ -246,12 +275,12 @@ class Engine {
 
     stateDescription() {
         let word = this.word;
-        let a, cible;
         switch(this.#state) {
-            case STATES.READ_RI:
-                a = this.#pl.read();
+            case STATES.READ_RI: {
+                let a = this.#pl.read();
                 let mem = this.#memory.read(a, 'hex');
                 return `Lecture Mémoire en PL = ${a}.\n0x${mem} sera écrit dans RI.\nPL sera incrémenté.`;
+            }
             case STATES.DECODE_RI:
                 let decode = this.decodeRI();
                 if (decode.name === null) {
@@ -286,42 +315,60 @@ class Engine {
                 }
                 return "Erreur";
             case STATES.HALT: return "Processeur à l'arrêt (HALT)";
+            case STATES.OUT_K:
+                return `Chargement du littéral ${this.#ri.low()} vers OUT.`;
             case STATES.LOAD_K:
-                if (word == AsmWords.OUT.code) {
-                    return `Chargement du littéral ${this.#ri.low()} vers OUT.`;
-                } else {
-                    return `Chargement du littéral ${this.#ri.low()} vers UAL.`;
-                }
-            case STATES.LOAD_BIG_K:
-                cible = (word == AsmWords.OUT.code)? 'OUT' : 'UAL';
-                a = this.#pl.read();
+                return `Chargement du littéral ${this.#ri.low()} vers UAL.`;
+            case STATES.OUT_BIG_K: {
+                let a = this.#pl.read();
                 let k = this.#memory.read(a, 'hex');
-                return `Chargement littéral long :\nLecture Mémoire en PL = ${a}.\n0x${k} sera écrit dans ${cible}.\nPL sera incrémenté.`;
-            case STATES.LOAD_A:
-                cible = (word == AsmWords.OUT.code)? 'OUT' : 'UAL';
-                a = this.#ri.low();
+                return `Chargement littéral long :\nLecture Mémoire en PL = ${a}.\n0x${k} sera écrit dans OUT.\nPL sera incrémenté.`;
+            }
+            case STATES.LOAD_BIG_K: {
+                let a = this.#pl.read();
+                let k = this.#memory.read(a, 'hex');
+                return `Chargement littéral long :\nLecture Mémoire en PL = ${a}.\n0x${k} sera écrit dans UAL.\nPL sera incrémenté.`;
+            }
+            case STATES.OUT_A: {
+                let a = this.#ri.low();
                 let v = this.#memory.read(a, 'hex');
-                return `Chargement selon adresse :\nLecture Mémoire en @ = ${a}.\n0x${v} sera écrit dans ${cible}.`;
+                return `Chargement selon adresse :\nLecture Mémoire en @ = ${a}.\n0x${v} sera écrit dans OUT.`;
+            }
+            case STATES.LOAD_A: {
+                let a = this.#ri.low();
+                let v = this.#memory.read(a, 'hex');
+                return `Chargement selon adresse :\nLecture Mémoire en @ = ${a}.\n0x${v} sera écrit dans UAL.`;
+            }
             case STATES.INC_POP:
                 return "En préparation du dépilement, le contenu de SP est incrémenté.";
-            case STATES.LOAD_POP:
-                cible = (word == AsmWords.OUT.code)? 'OUT' : 'UAL';
-                a = this.#sp.read();
+            case STATES.OUT_POP: {
+                let a = this.#sp.read();
                 let p = this.#memory.read(a, 'hex');
-                return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans ${cible}.`;
-            case STATES.LOAD_NO: 
-                cible = (word == AsmWords.OUT.code)? 'OUT' : 'UAL';
+                return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans OUT.`;
+            }
+            case STATES.LOAD_POP: {
+                let a = this.#sp.read();
+                let p = this.#memory.read(a, 'hex');
+                return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans UAL.`;
+            }
+            case STATES.OUT_W: {
                 let w = this.#ual.hex();
-                return `Chargement de valeur depuis le registre de travail W = 0x${w} vers ${cible}.`;
+                return `Chargement de valeur depuis le registre de travail W = 0x${w} vers OUT.`;
+            }
+            case STATES.LOAD_W: {
+                let w = this.#ual.hex();
+                return `Chargement de valeur depuis le registre de travail W = 0x${w} vers UAL.`;
+            }
             case STATES.BUFF_IN:
                 if (!this.#loadedValue) {
                     return "Attente du chargement d'une valeur en entrée.";
                 }
                 return `Donnée 0x${this.#in.hex()} chargée en entrée, prête à être transférée.`;
-            case STATES.IN_A:
-                a = this.#ri.low();
+            case STATES.IN_A: {
+                let a = this.#ri.low();
                 return `Donnée 0x${this.#in.hex()} transférée de l'entré à la mémoire à l'adresse @ = ${a}.`;
-            case STATES.INW:
+            }
+            case STATES.IN_W:
                 return `Donnée 0x${this.#in.hex()} transférée de l'entré à l'UAL.`;
             case STATES.PUSH:
                 return `PUSH : Registre de travail W = 0x${this.#ual.hex()} va être transféré sur la pile, à l'adresse SP = ${this.#sp.read()}.\nSP sera décrémenté.`;
@@ -338,36 +385,55 @@ class Engine {
     }
 
     memAdresse() {
-        if ((this.#state == STATES.READ_RI) || (this.#state == STATES.LOAD_BIG_K)) {
+        if ((this.#state == STATES.READ_RI) ||
+            (this.#state == STATES.LOAD_BIG_K) ||
+            (this.#state == STATES.OUT_BIG_K)
+            ) {
             return this.#pl.read();
         }
-        if ((this.#state == STATES.LOAD_A) || (this.#state == STATES.IN_A) || (this.#state == STATES.STR)) {
+        if ((this.#state == STATES.LOAD_A) ||
+            (this.#state == STATES.OUT_A)  ||
+            (this.#state == STATES.IN_A)   ||
+            (this.#state == STATES.STR)
+        ) {
             return this.#ri.low();
         }
-        if ((this.#state == STATES.LOAD_POP) || (this.#state = STATES.PUSH)) {
+        if ((this.#state == STATES.OUT_POP)  ||
+            (this.#state == STATES.LOAD_POP) ||
+            (this.#state = STATES.PUSH)
+        ) {
             return this.#sp.read();
         }
         return null;
     }
 
     inDataBus() {
-        if ((this.#state == STATES.READ_RI) ||
+        if ((this.#state == STATES.READ_RI)    ||
+            (this.#state == STATES.OUT_BIG_K)  ||
             (this.#state == STATES.LOAD_BIG_K) ||
-            (this.#state == STATES.LOAD_A) ||
-            (this.#state == STATES.LOAD_POP)) {
+            (this.#state == STATES.OUT_A)      ||
+            (this.#state == STATES.LOAD_A)     ||
+            (this.#state == STATES.OUT_POP)    ||
+            (this.#state == STATES.LOAD_POP)
+        ) {
             return DATA_BUS.MEM;
         }
         if ((this.#state == STATES.LOAD_K) ||
-            (this.#state == STATES.JMP)) {
+            (this.#state == STATES.OUT_K)  ||
+            (this.#state == STATES.JMP)
+        ) {
             return DATA_BUS.RI;
         }
-        if ((this.#state == STATES.LOAD_NO) ||
-            (this.#state == STATES.STR) ||
-            (this.#state == STATES.PUSH)) {
+        if ((this.#state == STATES.LOAD_W) ||
+            (this.#state == STATES.OUT_W)  ||
+            (this.#state == STATES.STR)    ||
+            (this.#state == STATES.PUSH)
+        ) {
             return DATA_BUS.UAL;
         }
         if ((this.#state == STATES.IN_A) ||
-        (this.#state == STATES.INW)) {
+            (this.#state == STATES.IN_W)
+        ) {
             return DATA_BUS.IN;
         }
         return DATA_BUS.OFF;
@@ -380,16 +446,27 @@ class Engine {
         if (this.#state == STATES.JMP) {
             return DATA_BUS.PL;
         }
-        let s = ((this.#state == STATES.LOAD_K) || (this.#state == STATES.LOAD_BIG_K) ||
-                 (this.#state == STATES.LOAD_A) || (this.#state == STATES.LOAD_POP) ||
-                 (this.#state == STATES.LOAD_NO));
-        if (s && (this.word == AsmWords.OUT.code)) {
+        if ((this.#state == STATES.OUT_K)     ||
+            (this.#state == STATES.OUT_BIG_K) ||
+            (this.#state == STATES.OUT_A)     ||
+            (this.#state == STATES.OUT_W)     ||
+            (this.#state == STATES.OUT_POP)
+        ) {
             return DATA_BUS.OUT;
         }
-        if (s || (this.#state == STATES.INW)) {
+        if ((this.#state == STATES.IN_W)        ||
+            (this.#state == STATES.LOAD_K)     ||
+            (this.#state == STATES.LOAD_BIG_K) ||
+            (this.#state == STATES.LOAD_A)     ||
+            (this.#state == STATES.LOAD_W)     ||
+            (this.#state == STATES.LOAD_POP)
+        ) {
             return DATA_BUS.UAL;
         }
-        if ((this.#state == STATES.IN_A) || (this.#state == STATES.STR) || (this.#state == STATES.PUSH)) {
+        if ((this.#state == STATES.IN_A) ||
+            (this.#state == STATES.STR)  ||
+            (this.#state == STATES.PUSH)
+        ) {
             return DATA_BUS.MEM;
         }
         return DATA_BUS.OFF;
@@ -442,7 +519,10 @@ class Engine {
         if (this.#state == STATES.EXEC_UAL){
             this.#ual.exec();
         }
-        if ((this.#state == STATES.READ_RI) || (this.#state == STATES.LOAD_BIG_K)){
+        if ((this.#state == STATES.READ_RI)   ||
+            (this.#state == STATES.OUT_BIG_K) ||        
+            (this.#state == STATES.LOAD_BIG_K)
+        ){
             this.#pl.inc();
         }
         if (this.#state == STATES.INC_POP){
@@ -451,7 +531,7 @@ class Engine {
         if (this.#state == STATES.PUSH){
             this.#sp.dec();
         }
-        if ((this.#state == STATES.INW) || (this.#state == STATES.IN_A)){
+        if ((this.#state == STATES.IN_W) || (this.#state == STATES.IN_A)){
             this.#loadedValue = false;
         }
         this.#state = this.nextState();
@@ -484,28 +564,41 @@ class Engine {
                     case AsmWords.NOP.code: return STATES.FIN_INSTR;
                     case AsmWords.POP.code: return STATES.INC_POP;
                 }
+                if (word == AsmWords.OUT.code) {
+                    switch(argType) {
+                        case AsmArgs.K: return (this.#ri.low() == 255) ? STATES.OUT_BIG_K : STATES.OUT_K;
+                        case AsmArgs.A: return STATES.OUT_A;
+                        case AsmArgs.P: return STATES.INC_POP;
+                        case AsmArgs.NO: return STATES.OUT_W;
+                    }    
+                }
                 switch(argType) {
                     case AsmArgs.K: return (this.#ri.low() == 255) ? STATES.LOAD_BIG_K : STATES.LOAD_K;
                     case AsmArgs.A: return STATES.LOAD_A;
                     case AsmArgs.P: return STATES.INC_POP;
-                    case AsmArgs.NO: return STATES.LOAD_NO;
+                    case AsmArgs.NO: return STATES.LOAD_W;
                 }
                 return STATES.ERROR;
             case STATES.HALT: return STATES.HALT;
             case STATES.ERROR: return STATES.ERROR;
-            case STATES.LOAD_K: return (word == AsmWords.OUT.code) ? STATES.FIN_INSTR : STATES.EXEC_UAL;
-            case STATES.LOAD_BIG_K: return (word == AsmWords.OUT.code) ? STATES.FIN_INSTR : STATES.EXEC_UAL;
-            case STATES.LOAD_A: return (word == AsmWords.OUT.code) ? STATES.FIN_INSTR : STATES.EXEC_UAL;
-            case STATES.INC_POP: return STATES.LOAD_POP;
-            case STATES.LOAD_POP: return (word == AsmWords.OUT.code) ? STATES.FIN_INSTR : STATES.EXEC_UAL;
-            case STATES.LOAD_NO: return (word == AsmWords.OUT.code) ? STATES.FIN_INSTR : STATES.EXEC_UAL;
+            case STATES.OUT_K: return STATES.FIN_INSTR;
+            case STATES.LOAD_K: return STATES.EXEC_UAL;
+            case STATES.OUT_BIG_K: return STATES.FIN_INSTR;
+            case STATES.LOAD_BIG_K: return STATES.EXEC_UAL;
+            case STATES.OUT_A: return STATES.FIN_INSTR;
+            case STATES.LOAD_A: return STATES.EXEC_UAL;
+            case STATES.INC_POP: return (word == AsmArgs.OUT.code)? STATES.OUT_POP:STATES.LOAD_POP;
+            case STATES.OUT_POP: return STATES.FIN_INSTR;
+            case STATES.LOAD_POP: return STATES.EXEC_UAL;
+            case STATES.OUT_W: return STATES.FIN_INSTR;
+            case STATES.LOAD_W: return STATES.EXEC_UAL;
             case STATES.BUFF_IN:
                 if (!this.#loadedValue) {
                     return STATES.BUFF_IN;
                 }
-                return (argType == AsmArgs.A) ? STATES.IN_A : STATES.INW;
+                return (argType == AsmArgs.A) ? STATES.IN_A : STATES.IN_W;
             case STATES.IN_A: return STATES.FIN_INSTR;
-            case STATES.INW: return STATES.EXEC_UAL;
+            case STATES.IN_W: return STATES.EXEC_UAL;
             case STATES.EXEC_UAL: return STATES.FIN_INSTR;
             case STATES.PUSH: return STATES.FIN_INSTR;
             case STATES.STR: return STATES.FIN_INSTR;
