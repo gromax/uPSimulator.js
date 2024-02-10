@@ -27,13 +27,14 @@ const STATES = {
     IN_A          : 14, // Envoie IN vers mémoire
     IN_W          : 15, // Envoie IN vers W
     EXEC_UAL      : 16, // Exécute l'opération UAL
-    PUSH          : 17, // Met W sur la pile
-    STR           : 18, // Stocke W dans la mémoire
-    JMP           : 19, // Saut
-    FIN_INSTR     : 20, // Fin instruction
-    START         : 21, // Démarrage
-    INC_POP       : 22, // Incrémente pointeur de pile
-    ERROR         : 23, // Erreur
+    DEC_SP        : 17, // Décrémente SP
+    PUSH          : 18, // Met W sur la pile
+    STR           : 19, // Stocke W dans la mémoire
+    JMP           : 20, // Saut
+    NOP           : 21, // Pas d'opération
+    FIN_INSTR     : 22, // Fin instruction
+    START         : 23, // Démarrage
+    ERROR         : 24, // Erreur
 }
 
 /*
@@ -44,21 +45,23 @@ const STATES = {
     -> DECODE_RI
 - DECODE_RI:
     -> STR : STR
-    -> PUSH : PUSH
+    -> PUSH : DEC_SP
     -> HALT : HALT
-    -> NOP : FIN_INSTR
+    -> NOP : NOP
     -> INP : BUFF_IN
+    -> POP : LOAD_POP
     -> Branchement satisfait : JMP
     -> Branchement non satisfait : FIN_INSTR
     -> OUT & type K & grand K: OUT_BIG_K
     -> OUT & type K: OUT_K
     -> OUT & type A: OUT_A
     -> OUT & type N: OUT W
+    -> OUT & type P: OUT_POP
 
     -> type K & grand K: LOAD_GK
     -> type K & !grand K: LOAD_K
     -> type A : LOAD_A
-    -> type P || POP: INC_POP
+    -> type P : LOAD_POP
     -> type N: LOAD_W
 - HALT:
     -> HALT
@@ -84,15 +87,13 @@ const STATES = {
     RI.LOW -> @
     MEM-> UAL,
     -> EXEC_UAL
-- INC_POP:
-    SP++
-    -> OUT: OUT_POP
-    -> sinon : LOAD_POP
 - OUT_POP:
+    SP++,
     SP->@,
     MEM -> OUT
     -> FIN_INSTR
 - LOAD_POP:
+    SP++,
     SP->@,
     MEM -> UAL
     -> EXEC_UAL
@@ -116,10 +117,12 @@ const STATES = {
     com UAL pour ADD, SUB, MUL, DIV, MOD, OR, AND, XOR, CMP, INV, NEG
     ou simple transfert in_ual -> w dans tout autre cas
     -> FIN_INSTR
+- DEC_SP:
+    SP--
+    -> PUSH
 - PUSH:
     SP -> @
     W -> MEM
-    SP--
     -> FIN_INSTR
 - STR:
     RI.LOW -> @
@@ -127,6 +130,8 @@ const STATES = {
     -> FIN_INSTR
 - JMP:
     RI.LOW -> PL
+    -> FIN_INSTR
+- NOP:
     -> FIN_INSTR
 - FIN_INSTR:
     signal de fin
@@ -339,17 +344,15 @@ class Engine {
                 let v = this.#memory.read(a, 'hex');
                 return `Chargement selon adresse :\nLecture Mémoire en @ = ${a}.\n0x${v} sera écrit dans UAL.`;
             }
-            case STATES.INC_POP:
-                return "En préparation du dépilement, le contenu de SP est incrémenté.";
             case STATES.OUT_POP: {
                 let a = this.#sp.read();
                 let p = this.#memory.read(a, 'hex');
-                return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans OUT.`;
+                return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans OUT.\nSP sera incrémenté.`;
             }
             case STATES.LOAD_POP: {
                 let a = this.#sp.read();
                 let p = this.#memory.read(a, 'hex');
-                return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans UAL.`;
+                return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans UAL.\nSP sera incrémenté.`;
             }
             case STATES.OUT_W: {
                 let w = this.#ual.hex();
@@ -370,14 +373,17 @@ class Engine {
             }
             case STATES.IN_W:
                 return `Donnée 0x${this.#in.hex()} transférée de l'entré à l'UAL.`;
+            case STATES.DEC_SP:
+                return `Pour préparer PUSH, SP va être décrémenté.`;
             case STATES.PUSH:
-                return `PUSH : Registre de travail W = 0x${this.#ual.hex()} va être transféré sur la pile, à l'adresse SP = ${this.#sp.read()}.\nSP sera décrémenté.`;
+                return `PUSH : Registre de travail W = 0x${this.#ual.hex()} va être transféré sur la pile, à l'adresse SP = ${this.#sp.read()}.`;
             case STATES.STR:
                 return `STORE : Registre de travail W = 0x${this.#ual.hex()} va être transféré dans la mémoire à l'adresse @ = ${this.#ri.low()}.`;
             case STATES.JMP:
                 return `SAUT : ${this.#ri.low()} va être transféré dans le pointeur de ligne PL.`;
             case STATES.EXEC_UAL:
                 return `Exécution UAL :\n${this.#ual.descrition()}`;
+            case STATES.FIN_INSTR: return "NOP : Pas d'opération";
             case STATES.FIN_INSTR: return "Fin instruction";
             case STATES.START: return "Démarrage.";
             default: return "Erreur.";
@@ -525,10 +531,12 @@ class Engine {
         ){
             this.#pl.inc();
         }
-        if (this.#state == STATES.INC_POP){
+        if ((this.#state == STATES.OUT_POP) ||
+            (this.#state == STATES.LOAD_POP)
+        ){
             this.#sp.inc();
         }
-        if (this.#state == STATES.PUSH){
+        if (this.#state == STATES.DEC_SP){
             this.#sp.dec();
         }
         if ((this.#state == STATES.IN_W) || (this.#state == STATES.IN_A)){
@@ -551,7 +559,7 @@ class Engine {
             case STATES.DECODE_RI:
                 switch(word) {
                     case AsmWords.STR.code: return STATES.STR;
-                    case AsmWords.PUSH.code: return STATES.PUSH;
+                    case AsmWords.PUSH.code: return STATES.DEC_SP;
                     case AsmWords.HALT.code: return STATES.HALT;
                     case AsmWords.INP.code: return STATES.BUFF_IN;
                     case AsmWords.JMP.code: return STATES.JMP;
@@ -561,21 +569,21 @@ class Engine {
                     case AsmWords.BLT.code: return !this.#ual.P ? STATES.JMP : STATES.FIN_INSTR;
                     case AsmWords.BGT.code: return this.#ual.P && !this.#ual.Z ? STATES.JMP : STATES.FIN_INSTR;
                     case AsmWords.BLE.code: return !this.#ual.P || this.#ual.Z ? STATES.JMP : STATES.FIN_INSTR;
-                    case AsmWords.NOP.code: return STATES.FIN_INSTR;
-                    case AsmWords.POP.code: return STATES.INC_POP;
+                    case AsmWords.NOP.code: return STATES.NOP;
+                    case AsmWords.POP.code: return STATES.LOAD_POP;
                 }
                 if (word == AsmWords.OUT.code) {
                     switch(argType) {
                         case AsmArgs.K: return (this.#ri.low() == 255) ? STATES.OUT_BIG_K : STATES.OUT_K;
                         case AsmArgs.A: return STATES.OUT_A;
-                        case AsmArgs.P: return STATES.INC_POP;
+                        case AsmArgs.P: return STATES.OUT_POP;
                         case AsmArgs.NO: return STATES.OUT_W;
                     }    
                 }
                 switch(argType) {
                     case AsmArgs.K: return (this.#ri.low() == 255) ? STATES.LOAD_BIG_K : STATES.LOAD_K;
                     case AsmArgs.A: return STATES.LOAD_A;
-                    case AsmArgs.P: return STATES.INC_POP;
+                    case AsmArgs.P: return STATES.LOAD_POP;
                     case AsmArgs.NO: return STATES.LOAD_W;
                 }
                 return STATES.ERROR;
@@ -587,7 +595,6 @@ class Engine {
             case STATES.LOAD_BIG_K: return STATES.EXEC_UAL;
             case STATES.OUT_A: return STATES.FIN_INSTR;
             case STATES.LOAD_A: return STATES.EXEC_UAL;
-            case STATES.INC_POP: return (word == AsmArgs.OUT.code)? STATES.OUT_POP:STATES.LOAD_POP;
             case STATES.OUT_POP: return STATES.FIN_INSTR;
             case STATES.LOAD_POP: return STATES.EXEC_UAL;
             case STATES.OUT_W: return STATES.FIN_INSTR;
@@ -600,9 +607,11 @@ class Engine {
             case STATES.IN_A: return STATES.FIN_INSTR;
             case STATES.IN_W: return STATES.EXEC_UAL;
             case STATES.EXEC_UAL: return STATES.FIN_INSTR;
+            case STATES.DEC_SP: return STATES.PUSH;
             case STATES.PUSH: return STATES.FIN_INSTR;
             case STATES.STR: return STATES.FIN_INSTR;
             case STATES.JMP: return STATES.FIN_INSTR;
+            case STATES.NOP: return STATES.FIN_INSTR;
             case STATES.FIN_INSTR: return STATES.READ_RI;
             default: return STATES.ERROR;
         }
