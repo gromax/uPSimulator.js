@@ -1,10 +1,12 @@
 import { SVG } from '@svgdotjs/svg.js';
 import { GProc } from './graphic/gproc';
+import { Machine } from './graphic/states';
 
 import { GET, hexToValues } from './utils/misc';
 import { Engine, STATES, DATA_BUS } from './simulation/engine';
-import { Box } from './utils/box';
+import { TextBox } from './utils/textbox';
 import { VBox } from './utils/variablesbox';
+import { Box } from './utils/box'
 import { Linker } from './utils/linker';
 
 let link = new Linker({
@@ -16,27 +18,25 @@ let link = new Linker({
 let values = hexToValues(link.hex);
 
 /* en l'absence de code python, pythonbox est une coquille vide */
-let pythonbox = new Box(link.python, 'Pseudo Python');
+let pythonbox = new TextBox(link.python, 'Pseudo Python');
 pythonbox.setXY(10,10);
 pythonbox.reduce();
 
 /* en l'absence de code asm, asmbox est une coquille vide */
-let asmbox = new Box(link.asm, 'Assembleur');
-asmbox.setXY(200,10);
+let asmbox = new TextBox(link.asm, 'Assembleur');
+asmbox.setXY(10, pythonbox.bottom + 5);
 asmbox.reduce();
 
-let vbox = null;
-{
-    let variables = link.variables;
-    if (Object.keys(variables).length > 0) {
-        let node = document.createElement("div");
-        document.body.appendChild(node);
-        vbox = new VBox(variables, node);
-        vbox.setXY(10,50);
-        vbox.reduce();
-    }
-}
+let vbox = new VBox(link.variables);
+vbox.setXY(10, asmbox.bottom + 5);
+vbox.reduce();
 
+let statebox = new Box("États", "div");
+let states_svg = SVG().addTo(statebox.content).size(510, 410);
+let gStates = new Machine(states_svg);
+gStates.scale(.5);
+statebox.reduce();
+statebox.setXY(10, vbox.bottom + 5);
 
 
 /**
@@ -77,13 +77,12 @@ function execCurrent(gp, eng) {
             case STATES.LOAD_A:
                 gp.ual.setIn(eng.onBus());
                 break;
-            case STATES.INC_POP:
-                gp.uc.sp.inc();
-                break;
             case STATES.OUT_POP:
+                gp.uc.sp.inc();
                 gp.out.add(eng.onBus());
                 break;
             case STATES.LOAD_POP:
+                gp.uc.sp.inc();
                 gp.ual.setIn(eng.onBus());
                 break;
             case STATES.OUT_W: 
@@ -102,9 +101,11 @@ function execCurrent(gp, eng) {
                 gp.input.purge();
                 gp.ual.writeIn(eng.onBus());
                 break;
+            case STATES.DEC_SP:
+                gp.uc.sp.dec();
+                break;
             case STATES.PUSH:
                 gp.memory.write(eng.memAdresse(), eng.onBus());
-                gp.uc.sp.dec();
                 break;
             case STATES.STR:
                 gp.memory.write(eng.memAdresse(), eng.onBus());
@@ -170,14 +171,13 @@ function updateSignaux(gp, eng){
             gp.setAddressBus('ri');
             gp.setDataIO('memory', 'ual');
             break;
-        case STATES.INC_POP:
-            gp.uc.sp.setInc(true);
-            break;
         case STATES.OUT_POP:
+            gp.uc.sp.setInc(true);
             gp.setAddressBus('sp');
             gp.setDataIO('memory', 'output');
             break;
         case STATES.LOAD_POP:
+            gp.uc.sp.setInc(true);
             gp.setAddressBus('sp');
             gp.setDataIO('memory', 'ual');
             break;
@@ -199,9 +199,11 @@ function updateSignaux(gp, eng){
         case STATES.INW:
             gp.setDataIO('input', 'ual');
             break;
+        case STATES.DEC_SP:
+            gp.uc.sp.setDec(true);
+            break;
         case STATES.PUSH:
             gp.setAddressBus('sp');
-            gp.uc.sp.setDec(true);
             gp.setDataIO('ual', 'memory');
             break;
         case STATES.STR:
@@ -232,6 +234,7 @@ function step() {
     }
     proc.uc.showMessage(engine.stateDescription());
     updateSignaux(proc, engine);
+    gStates.select(engine.state, engine.nextState());
 }
 
 function reset(){
@@ -253,6 +256,8 @@ function reset(){
 
     pythonbox.highlight(-1);
     asmbox.highlight(-1);
+
+    gStates.select(-1,-1);
 }
 
 
@@ -304,9 +309,7 @@ var proc = new GProc(draw, {
     "très vite":[function(){ pressRun(50); }, "Exécuter très vite"],
     stop:[pressStop,"Arrêter"]});
 
-if (vbox){
-    proc.memory.link(vbox.variablesNodes);
-}
+proc.memory.link(vbox.variablesNodes);
 proc.memory.load(values);
 
 
