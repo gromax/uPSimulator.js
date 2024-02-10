@@ -9,19 +9,19 @@ div.infos {
 }
 
 
-div.boxcontainer, div.vboxcontainer {
+div.boxcontainer {
     position:absolute;
     padding:5px;
     background-color: #CCC;
     z-index: 10;
 }
 
-div.boxtitle, div.vboxtitle {
+div.boxtitle {
     padding: 2px;
     cursor: move;
 }
 
-div.boxcontent {
+div.box {
     padding: 2px;
     background-color: #fff;
     font-family: ui-monospace;
@@ -53,10 +53,10 @@ span.tag {
     color:#fff;
 }
 
-table.vbox tr:nth-child(even) {
+table.box tr:nth-child(even) {
     background-color: #eee;
 }
-table.vbox tr:nth-child(odd) {
+table.box tr:nth-child(odd) {
     background-color: #fff;
 }
 
