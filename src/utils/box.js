@@ -1,5 +1,3 @@
-import { replaceSpace } from './misc';
-
 class Box {
     #codeLines;
     #nodes;
@@ -12,9 +10,8 @@ class Box {
     #button;
     #content = null;
 
-    constructor(code, title) {
-        this.#nodes = [];
-        if (code == '') {
+    constructor(title, contentTag, zombie = false) {
+        if (zombie) {
             return;
         }
         this.#container = document.createElement("div");
@@ -28,34 +25,13 @@ class Box {
         this.#titlebar.appendChild(document.createTextNode('  '+title));
         this.#container.appendChild(this.#titlebar);
         this.#titlebar.classList.add('boxtitle');
-        this.#content = document.createElement("div");
-        this.#content.classList.add('boxcontent');
+        this.#content = document.createElement(contentTag);
+        this.#content.classList.add('box');
         this.#container.appendChild(this.#content);
-        this.#codeLines = code.split('\n');
-        for (let i=0; i<this.#codeLines.length;i++) {
-            let line = replaceSpace(this.#codeLines[i]);
-            let itab = line.indexOf('\t');
-            if (itab>=0) {
-                line = "<span class='tag'>" + line.substring(0,itab+1) + "</span>" + line.substring(itab+1);
-            }
-            let p = document.createElement('p');
-            p.classList.add('boxitem');
-            p.innerHTML = line;
-            this.#content.appendChild(p);
-            this.#nodes.push(p);
-        }
+
         let that = this;
         this.#titlebar.addEventListener("mousedown", function(e) { that.mouseDown(e); });
         this.#button.addEventListener("click", function(e) { that.reduce(e); });
-    }
-
-    highlight(n){
-        for (let i=0;i<this.#nodes.length;i++){
-            this.#nodes[i].classList.remove('highlight');
-        }
-        if ((n>=0) && (n<this.#nodes.length)) {
-            this.#nodes[n].classList.add('highlight');
-        }
     }
 
     mouseDown(e){
@@ -103,6 +79,29 @@ class Box {
         this.#container.style.left = x + 'px';
         this.#container.style.top = y + 'px';
     }
+
+    append(node){
+        if (this.#content == null) {
+            return;
+        }
+        this.#content.appendChild(node);
+    }
+
+    get content() {
+        return this.#content;
+    }
+
+    get bottom() {
+        if (this.#container == null) {
+            return 0;
+        }
+        return this.#container.offsetTop + this.#container.offsetHeight;
+    }
 }
+
+
+
+
+
 
 export { Box };
