@@ -60,7 +60,11 @@ table.box tr:nth-child(odd) {
     background-color: #fff;
 }
 
-table.vbox td, table.vbox th {
+table.box td, table.box th {
     padding:5px 8px;
     text-align: center;
 }
+
+svg text{
+    pointer-events: none;
+ }
