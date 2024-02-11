@@ -287,11 +287,15 @@ class GRegister {
         return this.#activated;
     }
 
-    link(node){
+    link(node) {
         /* attache le register à un node
            pour qu'il le mette à jour à chaque changement */
         this.#node = node;
-        this.#node.innerHTML = this.read();
+        this.#updateValueDisplay();
+    }
+
+    unlink() {
+        this.#node = null;
     }
 
 }
