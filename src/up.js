@@ -78,10 +78,18 @@ function execCurrent(gp, eng) {
                 gp.ual.setIn(eng.onBus());
                 break;
             case STATES.OUT_POP:
+                {
+                    let adresse = vbox.pop();
+                    gp.memory.unlink(adresse);
+                }
                 gp.uc.sp.inc();
                 gp.out.add(eng.onBus());
                 break;
             case STATES.LOAD_POP:
+                {
+                    let adresse = vbox.pop();
+                    gp.memory.unlink(adresse);
+                }
                 gp.uc.sp.inc();
                 gp.ual.setIn(eng.onBus());
                 break;
@@ -106,6 +114,8 @@ function execCurrent(gp, eng) {
                 break;
             case STATES.PUSH:
                 gp.memory.write(eng.memAdresse(), eng.onBus());
+                let node = vbox.push(eng.memAdresse(), eng.onBus());
+                gp.memory.link(eng.memAdresse(), node);
                 break;
             case STATES.STR:
                 gp.memory.write(eng.memAdresse(), eng.onBus());
@@ -143,7 +153,7 @@ function updateSignaux(gp, eng){
             gp.uc.pl.setInc(true);
             break;
         case STATES.DECODE_RI:
-            gp.uc.decode.update(eng.decodeRI());
+            gp.uc.decode.update(eng.word, eng.argType, eng.arg);
             break;
         case STATES.HALT:
             break;
@@ -246,7 +256,7 @@ function reset(){
     proc.ual.setIn(0);
     proc.ual.setW(0);
     proc.uc.ri.setValue(0);
-    proc.uc.sp.setValue(255);
+    proc.uc.sp.setValue(0);
     proc.uc.pl.setValue(0);
 
     proc.setUalP(true);
@@ -309,11 +319,17 @@ var proc = new GProc(draw, {
     "très vite":[function(){ pressRun(50); }, "Exécuter très vite"],
     stop:[pressStop,"Arrêter"]});
 
-proc.memory.link(vbox.variablesNodes);
+
+{
+    let nodes = vbox.variablesNodes;    
+    for (let adresse in nodes) {
+        proc.memory.link(adresse, nodes[adresse]);
+    }
+}
 proc.memory.load(values);
 
 
-proc.input.setCallback(function(v) { engine.writeIn(v); });
+proc.input.setCallback(function(v) { engine.writeIn(v); gStates.select(engine.state, engine.nextState()); });
 
 
 
