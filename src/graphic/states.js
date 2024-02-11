@@ -25,7 +25,7 @@ class StateNode {
     #orders = null;
     #outPaths;
     #condIn = null;
-    constructor(parent, n, orders, condIn='') {
+    constructor(parent, n, orders, hint, condIn='') {
         this.#outPaths = {};
         this.#group = parent.nested();
         this.#circle = this.#group.circle(StateNode.DIAMETER);
@@ -66,6 +66,11 @@ class StateNode {
             if (this.#orders) {
                 this.#orders.cy(this.#circle.cy());
             }
+        }
+        if (hint != '') {
+            let nodeHint = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            this.#circle.node.appendChild(nodeHint);
+            nodeHint.textContent = hint;
         }
     }
 
@@ -157,7 +162,7 @@ class StateNode {
         switch(c) {
             case Axes.N: return this.#group.x() + this.#circle.cx();
             case Axes.S: return this.#group.x() + this.#circle.cx();
-            case Axes.E: return this.#group.x() + this.#circle.x();
+            case Axes.W: return this.#group.x() + this.#circle.x();
             default:     return this.#group.x() + this.#circle.x() + StateNode.DIAMETER;
         }
     }
@@ -167,7 +172,7 @@ class StateNode {
         switch(c) {
             case Axes.N: return this.#group.y() + this.#circle.y();
             case Axes.S: return this.#group.y() + this.#circle.y() + StateNode.DIAMETER;
-            case Axes.E: return this.#group.y() + this.#circle.cy();
+            case Axes.W: return this.#group.y() + this.#circle.cy();
             default:     return this.#group.y() + this.#circle.cy();
         }
     }
@@ -185,29 +190,29 @@ class Machine {
     constructor(parent) {
         this.#group = parent.group();
         this.#states = [];
-        this.#states.push(new StateNode(this.#group, 0,  ["PL → @", "RD MEM", "WR RI", "PL++"] , ""                            )); // READ_RI
-        this.#states.push(new StateNode(this.#group, 1,  []                                    , ""                            )); // DECODE_RI
-        this.#states.push(new StateNode(this.#group, 2,  []                                    , "HALT"                        )); // HALT
-        this.#states.push(new StateNode(this.#group, 3,  ["RD RI.low", "WR OUT"]               , "OUT &\nlittéral"             )); // OUT_K
-        this.#states.push(new StateNode(this.#group, 4,  ["RD RI.low", "WR UAL"]               , "ual com &\nlittéral"         )); // LOAD_K
-        this.#states.push(new StateNode(this.#group, 5,  ["PL → @", "RD MEM", "WR OUT", "PL++"], "OUT &\ngrand littéral"       )); // OUT_BIG_K
-        this.#states.push(new StateNode(this.#group, 6,  ["PL → @", "RD MEM", "WR UAL", "PL++"], "ual com &\ngrand littéral"   )); // LOAD_BIG_K
-        this.#states.push(new StateNode(this.#group, 7,  ["RI.low → @", "RD MEM", "WR OUT"]    , "OUT &\n@ arg"                )); // OUT_A
-        this.#states.push(new StateNode(this.#group, 8,  ["RI.low → @", "RD MEM", "WR OUT"]    , "ual com &\n@a arg"           )); // LOAD_A
-        this.#states.push(new StateNode(this.#group, 9,  ["RD UAL", "WR OUT"]                  , "OUT &\n no arg"              )); // OUT_W
-        this.#states.push(new StateNode(this.#group, 10, ["RD UAL", "WR UAL"]                  , "ual com &\n no arg"          )); // LOAD_W
-        this.#states.push(new StateNode(this.#group, 11, ["SP → @", "RD MEM", "WR OUT", "SP++"], "OUT &\np arg"                )); // OUT_POP
-        this.#states.push(new StateNode(this.#group, 12, ["SP → @", "RD MEM", "WR UAL", "SP++"], "POP ou\nual com &\np arg"    )); // LOAD_POP
-        this.#states.push(new StateNode(this.#group, 13, []                                    , "INP"                         )); // BUFF_IN
-        this.#states.push(new StateNode(this.#group, 14, ["RD IN", "RI.low → @", "WR MEM"]     , "@ arg"                       )); // IN_A
-        this.#states.push(new StateNode(this.#group, 15, ["RD IN", "WR UAL"]                   , "no arg"                      )); // IN_W
-        this.#states.push(new StateNode(this.#group, 16, ["UAL:selon opcode"]                  , ""                            )); // EXEC_UAL
-        this.#states.push(new StateNode(this.#group, 17, ["SP--"]                              , "PUSH"                        )); // DEC_SP
-        this.#states.push(new StateNode(this.#group, 18, ["RD UAL", "SP → @", "WR MEM" ]       , ""                            )); // PUSH
-        this.#states.push(new StateNode(this.#group, 19, ["RD UAL", "RI.low → @", "WR MEM"]    , "STR"                         )); // STR
-        this.#states.push(new StateNode(this.#group, 20, ["RD RI.low", "WR PL"]                , "JMP &\ncondition\nsatisfaite")); // JMP
-        this.#states.push(new StateNode(this.#group, 21, ["RD RI.low", "WR PL"]                , "NOP"                         )); // NOP
-        this.#states.push(new StateNode(this.#group, 22, []                                    , ""                            )); // FIN_INSTR
+        this.#states.push(new StateNode(this.#group, 0,  ["PL → @", "RD MEM", "WR RI", "PL++"] , "Lecture registre instruction" , ""         )); // READ_RI
+        this.#states.push(new StateNode(this.#group, 1,  []                                    , "Décodage régistre instruction", ""                            )); // DECODE_RI
+        this.#states.push(new StateNode(this.#group, 2,  []                                    , "Arrêt"                        , "HALT"                        )); // HALT
+        this.#states.push(new StateNode(this.#group, 3,  ["RD RI.low", "WR OUT"]               , "Littéral → OUT"               , "OUT &\nlittéral"             )); // OUT_K
+        this.#states.push(new StateNode(this.#group, 4,  ["RD RI.low", "WR UAL"]               , "Littéral → UAL"               , "ual com &\nlittéral"         )); // LOAD_K
+        this.#states.push(new StateNode(this.#group, 5,  ["PL → @", "RD MEM", "WR OUT", "PL++"], "Grand littéral → OUT"         , "OUT &\ngrand littéral"       )); // OUT_BIG_K
+        this.#states.push(new StateNode(this.#group, 6,  ["PL → @", "RD MEM", "WR UAL", "PL++"], "Grand littéral → UAL"         , "ual com &\ngrand littéral"   )); // LOAD_BIG_K
+        this.#states.push(new StateNode(this.#group, 7,  ["RI.low → @", "RD MEM", "WR OUT"]    , "Mémoire → OUT"                , "OUT &\n@ arg"                )); // OUT_A
+        this.#states.push(new StateNode(this.#group, 8,  ["RI.low → @", "RD MEM", "WR OUT"]    , "Mémoire → UAL"                , "ual com &\n@a arg"           )); // LOAD_A
+        this.#states.push(new StateNode(this.#group, 9,  ["RD UAL", "WR OUT"]                  , "W → OUT"                      , "OUT &\n no arg"              )); // OUT_W
+        this.#states.push(new StateNode(this.#group, 10, ["RD UAL", "WR UAL"]                  , "W → UAL"                      , "ual com &\n no arg"          )); // LOAD_W
+        this.#states.push(new StateNode(this.#group, 11, ["SP → @", "RD MEM", "WR OUT", "SP++"], "Pile → OUT"                   , "OUT &\np arg"                )); // OUT_POP
+        this.#states.push(new StateNode(this.#group, 12, ["SP → @", "RD MEM", "WR UAL", "SP++"], "Pile → UAL"                   , "POP ou\nual com &\np arg"    )); // LOAD_POP
+        this.#states.push(new StateNode(this.#group, 13, []                                    , "Attente saisie utilisateur"   , "INP"                         )); // BUFF_IN
+        this.#states.push(new StateNode(this.#group, 14, ["RD IN", "RI.low → @", "WR MEM"]     , "IN → Mémoire"                 , "@ arg"                       )); // IN_A
+        this.#states.push(new StateNode(this.#group, 15, ["RD IN", "WR UAL"]                   , "IN → UAL"                     , "no arg"                      )); // IN_W
+        this.#states.push(new StateNode(this.#group, 16, ["UAL:selon opcode"]                  , "Exécution de la commande UAL" , ""                            )); // EXEC_UAL
+        this.#states.push(new StateNode(this.#group, 17, ["SP--"]                              , "SP-- pour préparer PUSH"      , "PUSH"                        )); // DEC_SP
+        this.#states.push(new StateNode(this.#group, 18, ["RD UAL", "SP → @", "WR MEM" ]       , "PUSH : W → Pile"              , ""                            )); // PUSH
+        this.#states.push(new StateNode(this.#group, 19, ["RD UAL", "RI.low → @", "WR MEM"]    , "W → Mémoire"                  , "STR"                         )); // STR
+        this.#states.push(new StateNode(this.#group, 20, ["RD RI.low", "WR PL"]                , "Saut"                         , "JMP &\ncondition\nsatisfaite")); // JMP
+        this.#states.push(new StateNode(this.#group, 21, []                                    , "Pas d'opération"              , "NOP ou\n JMP non satisfait"  )); // NOP
+        this.#states.push(new StateNode(this.#group, 22, []                                    , "Fin d'instruction"            , ""                            )); // FIN_INSTR
         this.#states[0].move(100,21);
         this.#states[1].left(this.#states[0].left()).top(this.#states[0].bottom() + Machine.VMARGIN);
         this.#states[2].right(this.#states[1].left() -20).top(this.#states[1].bottom() + 2*Machine.VMARGIN);
@@ -238,7 +243,7 @@ class Machine {
         this.#states[17].left(this.#states[1].left()).top(this.#states[3].bottom() + 3*Machine.VMARGIN);
         this.#states[19].left(this.#states[17].right() + 20).top(this.#states[17].top());
         this.#states[21].left(this.#states[19].right() + 20).top(this.#states[17].top());
-        this.#states[20].left(this.#states[21].right() + 20).top(this.#states[17].top());
+        this.#states[20].left(this.#states[21].right() + 80).top(this.#states[17].top());
         this.#states[18].left(this.#states[17].left()).top(this.#states[17].bottom() + Machine.VMARGIN);
 
         // Fin
@@ -270,7 +275,7 @@ class Machine {
         for (let i=0; i<nodes.length;i++) {
             let d = this.#states[nodes[i]];
             let s = this.#states[1];
-            let p = this.#group.path(`M${s.xAnchor(Axes.S)} ${s.yAnchor(Axes.S)} V${d.yAnchor(Axes.N)-30} H${d.xAnchor(Axes.N)} V${d.yAnchor(Axes.N)}`).fill('none').stroke(Machine.STROKE);
+            let p = this.#group.path(`M${s.xAnchor(Axes.S)} ${s.yAnchor(Axes.S)} V${d.yAnchor(Axes.N)-40} H${d.xAnchor(Axes.N)} V${d.yAnchor(Axes.N)}`).fill('none').stroke(Machine.STROKE);
             s.addPath(nodes[i], p);
         }
 
@@ -289,35 +294,41 @@ class Machine {
             let p = this.#group.path(`M${s.xAnchor(Axes.S)} ${s.yAnchor(Axes.S)} v25 H${d.xAnchor(Axes.N)} V${d.yAnchor(Axes.N)}`).fill('none').stroke(Machine.STROKE);
             s.addPath(22, p);
         }
-        {
+        {   // DEC_SP -> PUSH
             let d = this.#states[18];
             let s = this.#states[17];
             let p = this.#group.path(`M${s.xAnchor(Axes.S)} ${s.yAnchor(Axes.S)} H${d.xAnchor(Axes.N)} V${d.yAnchor(Axes.N)}`).fill('none').stroke(Machine.STROKE);
             s.addPath(18, p);
         }
-        {
+        {   // READ_RI -> DECODE_RI
             let d = this.#states[1];
             let s = this.#states[0];
             let p = this.#group.path(`M${s.xAnchor(Axes.S)} ${s.yAnchor(Axes.S)} H${d.xAnchor(Axes.N)} V${d.yAnchor(Axes.N)}`).fill('none').stroke(Machine.STROKE);
             s.addPath(1, p);
         }
-        {
+        {   // FIN_INSTR -> READ_RI
             let d = this.#states[0];
             let s = this.#states[22];
             let p = this.#group.path(`M${s.xAnchor(Axes.S)} ${s.yAnchor(Axes.S)} v20 H10 V${d.yAnchor(Axes.N) - 20} H${d.xAnchor(Axes.N)} V${d.yAnchor(Axes.N)}`).fill('none').stroke(Machine.STROKE);
             s.addPath(0, p);
         }
-        {
+        {   // DECODE_RI -> HALT
             let d = this.#states[2];
             let s = this.#states[1];
             let p = this.#group.path(`M${s.xAnchor(Axes.S)} ${s.yAnchor(Axes.S)} v10 H${d.xAnchor(Axes.N)} V${d.yAnchor(Axes.N)}`).fill('none').stroke(Machine.STROKE);
             s.addPath(2, p);
         }
-        {
+        {   // HALT -> HALT
             let d = this.#states[2];
             let s = this.#states[2];
             let p = this.#group.path(`M${s.xAnchor(Axes.S)+3} ${s.yAnchor(Axes.S)} v20 H${d.xAnchor(Axes.S)-3} V${d.yAnchor(Axes.S)}`).fill('none').stroke(Machine.STROKE);
             s.addPath(2, p);
+        }
+        {   // BUFF_IN -> BUFF_IN
+            let d = this.#states[13];
+            let s = this.#states[13];
+            let p = this.#group.path(`M${s.xAnchor(Axes.E)} ${s.yAnchor(Axes.E-3)} h20 v6 H${d.xAnchor(Axes.E)}`).fill('none').stroke(Machine.STROKE);
+            s.addPath(13, p);
         }
     }
 
@@ -327,19 +338,19 @@ class Machine {
     }
 
     select(source, cible) {
-        if (this.#source >= 0) {
+        if (this.#source in this.#states) {
             this.#states[this.#source].set_off();
         }
-        if (this.#cible >= 0) {
+        if (this.#cible in this.#states) {
             this.#states[this.#cible].offCond();
         }
         this.#source = source;
         this.#cible = cible;
-        if (source >= 0) {
+        if (source in this.#states) {
             this.#states[source].set_on()
             this.#states[source].onPath(cible);
         }
-        if (cible >=0) {
+        if (cible in this.#states) {
             this.#states[cible].onCond();
         }
     }
