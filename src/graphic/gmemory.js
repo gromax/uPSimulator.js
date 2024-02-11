@@ -291,12 +291,16 @@ class GMemory {
         return this.#registers[address].read(fmt);
     }
 
-    link(nodes) {
-        /* nodes: dictionnaire de forme {adresse:node}
-           relie les gregister concernés pour qu'ils mettent à jour le node à chaque changement */
-        for (let adresse in nodes) {
-            this.#registers[adresse].link(nodes[adresse])
-        }
+    link(adresse, node) {
+        /* node: noeud du dom
+           adresse: adresse mémoire
+           relie le gregister concerné au noeud pour qu'il le mette à jour à chaque changement */
+        this.#registers[adresse].link(node);
+    }
+
+    unlink(adresse) {
+        /* détache l'éventuel lien d'un gRegister avec un nœud */
+        this.#registers[adresse].unlink();
     }
 
 }
