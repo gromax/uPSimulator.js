@@ -1,9 +1,9 @@
 const AsmArgs = { // types d'argument
-    NO: 0,
-    K : 1,
-    A : 2,
-    P : 3,
-    D : 4
+    NO: 0,        // Pas d'argument ou W
+    K : 1,        // Littéral
+    A : 2,        // Adresse
+    P : 3,        // Pile
+    D : 4         // Data
 }
 
 const AsmWords = { // opcode sur 6 bits
@@ -50,4 +50,54 @@ function wordToStr(word) {
     return 'INCONNU';
 }
 
-export { AsmArgs, AsmWords, wordToStr };
+function argtypeToStr(code){
+    switch(code) {
+        case AsmArgs.A: return '@';
+        case AsmArgs.K: return 'K';
+        case AsmArgs.P: return 'P';
+        case AsmArgs.NO: return 'N';
+        default: return '';
+    }
+}
+
+function isJump(code){
+    return ((code == AsmWords.JMP.code) ||
+            (code == AsmWords.BLE.code) ||
+            (code == AsmWords.BLT.code) ||
+            (code == AsmWords.BGE.code) ||
+            (code == AsmWords.BGT.code) ||
+            (code == AsmWords.BEQ.code) ||
+            (code == AsmWords.BNE.code));
+}
+
+function jumpCond(code){
+    switch(code) {
+        case AsmWords.BLE.code: return 'Z ou non P';
+        case AsmWords.BLT.code: return 'non P' ;
+        case AsmWords.BGE.code: return 'P' ;
+        case AsmWords.BGT.code: return 'P et non Z';
+        case AsmWords.BEQ.code: return 'Z';
+        case AsmWords.BNE.code: return 'non Z';
+        default: return null;
+    }
+}
+
+function actsOnOperand(code){
+    return ((code == AsmWords.OUT.code) ||
+            (code == AsmWords.ADD.code) ||
+            (code == AsmWords.SUB.code) ||
+            (code == AsmWords.MUL.code) ||
+            (code == AsmWords.DIV.code) ||
+            (code == AsmWords.MOD.code) ||
+            (code == AsmWords.OR.code) ||
+            (code == AsmWords.AND.code) ||
+            (code == AsmWords.XOR.code) ||
+            (code == AsmWords.CMP.code) ||
+            (code == AsmWords.MOV.code) ||
+            (code == AsmWords.INV.code) ||
+            (code == AsmWords.NEG.code) ||
+            (code == AsmWords.STR.code));
+}
+
+
+export { AsmArgs, AsmWords, wordToStr, argtypeToStr, isJump, jumpCond, actsOnOperand};
