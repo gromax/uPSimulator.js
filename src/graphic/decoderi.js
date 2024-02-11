@@ -2,6 +2,7 @@
 
 import { FONT_FAMILY } from "./styles";
 import { decToRadix } from "../utils/misc";
+import { wordToStr, actsOnOperand, argtypeToStr, AsmArgs } from '../compile/asmconstantes';
 
 class DecodeRI {
     static HEIGHT = 50;
@@ -46,26 +47,31 @@ class DecodeRI {
         this.#group.path('M0 0 l20 -20 v10 h30 v20 h-30 v10 Z').fill('#b09310').stroke('none').x(this.#backArg.x() + this.#backArg.width()+5).cy(this.#backArg.cy());
     }
 
-    update(decode) {
-        let [word, argtype, arg] = decode.code;
+    update(word, argtype, arg) {
+        /* word: opcode
+           argtype: type d'argument
+           arg: 8 bits d'argument
+        */
+        
+        // affichage binaire de l'opcode
         let t = decToRadix(word, 2, 6);
         this.#binOpcode.text(`${t.substring(0,4)} ${t.substring(4,6)}`).cx(this.#backOpcode.cx());
+        // affichage binaire du type d'opérande
         this.#binArgtype.text(decToRadix(argtype, 2, 2)).cx(this.#backArgtype.cx());
-        t = decToRadix(arg, 2, 8)
+        t = decToRadix(arg, 2, 8);
+        // affichage binaire de l'oparande
         this.#binArg.text(`${t.substring(0,4)} ${t.substring(4,8)}`).cx(this.#backArg.cx());
-        if (decode.name !== null) {
-            this.#backOpcode.fill(DecodeRI.FILL_OPCODE);
-            this.#textOp.text(decode.name).font({fill:'#5c1250'});
-            this.#binOpcode.font({fill:'#5c1250'});
-        } else {
-            this.#backOpcode.fill(DecodeRI.FILL_NO);
-            this.#textOp.text('???').font({fill:'#555'});
-            this.#binOpcode.font({fill:'#555'});
-        }
+        
+        // Affichage texte de l'opcode
+        this.#backOpcode.fill(DecodeRI.FILL_OPCODE);
+        this.#textOp.text(wordToStr(word)).font({fill:'#5c1250'});
+        this.#binOpcode.font({fill:'#5c1250'});
         this.#textOp.cx(this.#backOpcode.cx());
-        if (decode.argtype !== null) {
+
+        // Affichage texte du type d'opérande
+        if (actsOnOperand(word)) {
             this.#backArgtype.fill(DecodeRI.FILL_ARGTYPE);
-            this.#textType.text(decode.argtype).font({fill:'#0a3c59'});
+            this.#textType.text(argtypeToStr(argtype)).font({fill:'#0a3c59'});
             this.#binArgtype.font({fill:'#0a3c59'})
         } else {
             this.#backArgtype.fill(DecodeRI.FILL_NO);
@@ -73,13 +79,15 @@ class DecodeRI {
             this.#binArgtype.font({fill:'#555'});
         }
         this.#textType.cx(this.#backArgtype.cx());
-        if (decode.arg !== null) {
+
+        // Affichage texte de l'opérande
+        if (actsOnOperand(word)) {
             this.#backArg.fill(DecodeRI.FILL_ARG);
             this.#binArg.font({fill:'#63420b'});
-            if ((decode.argtype == 'K') && (decode.arg == 255)) {
+            if ((argtype == AsmArgs.K) && (arg == 255)) {
                 this.#textArg.text('Litt. long').font({fill:'#63420b'});
             } else {
-                this.#textArg.text(decode.arg).font({fill:'#63420b'});
+                this.#textArg.text(arg).font({fill:'#63420b'});
             }
         } else {
             this.#backArg.fill(DecodeRI.FILL_NO);
