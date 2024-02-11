@@ -3,7 +3,7 @@ module: simulation du modèle de processeur
 */
 import _ from 'lodash';
 
-import { AsmWords, AsmArgs, wordToStr } from '../compile/asmconstantes';
+import { AsmWords, AsmArgs, wordToStr, isJump, jumpCond, actsOnOperand } from '../compile/asmconstantes';
 import { Register } from './register';
 import { Ual } from './ual';
 import { Memory } from './memory';
@@ -51,7 +51,7 @@ const STATES = {
     -> INP : BUFF_IN
     -> POP : LOAD_POP
     -> Branchement satisfait : JMP
-    -> Branchement non satisfait : FIN_INSTR
+    -> Branchement non satisfait : NOP
     -> OUT & type K & grand K: OUT_BIG_K
     -> OUT & type K: OUT_K
     -> OUT & type A: OUT_A
@@ -147,7 +147,6 @@ const DATA_BUS = {
     PL: 6
 }
 
-
 class Engine {
     static SIZE = 256;
     #memory;
@@ -166,7 +165,7 @@ class Engine {
         this.#ual = new Ual();
         this.#pl = new Register(0);
         this.#ri = new Register(0);
-        this.#sp = new Register(255);
+        this.#sp = new Register(0);
         this.#in = new Register(0);
         this.#out = new Buffer();
 
@@ -221,7 +220,7 @@ class Engine {
         this.#ual.reset();
         this.#in.reset();
         this.#out.purge();
-        this.#sp.write(255);
+        this.#sp.write(0);
         this.#ri.reset(0);
         this.#loadedValue = false;
         this.#memory.load(this.#save);
@@ -245,78 +244,54 @@ class Engine {
         return (ri >> 8) % 4;
     }
 
+    get arg() {
+        return this.#ri.low();
+    }
+
     get state() {
         return this.#state;
     }
 
-    decodeRI() {
-        let word = this.word;
-        let argType = this.argType;
-        let arg = this.#ri.low();
-        let code = [word, argType, arg];
-        let wordName = wordToStr(word);
-        if (_.includes([AsmWords.STR.code, AsmWords.PUSH.code,
-                AsmWords.HALT.code, AsmWords.NOP.code, AsmWords.POP.code
-        ], word)) {
-            return { name:wordName, argtype:null, arg:null, code:code , jump:false, cond:null };
-        }
-        switch (word) {
-            case AsmWords.JMP.code: return { name:wordName, argtype:null, arg:this.#ri.low(), code:code , jump:true, cond:null };
-            case AsmWords.BLE.code: return { name:wordName, argtype:null, arg:this.#ri.low(), code:code , jump:true, cond:'Z ou non P' };
-            case AsmWords.BLT.code: return { name:wordName, argtype:null, arg:this.#ri.low(), code:code , jump:true, cond:'non P' };
-            case AsmWords.BGE.code: return { name:wordName, argtype:null, arg:this.#ri.low(), code:code , jump:true, cond:'P' };
-            case AsmWords.BGT.code: return { name:wordName, argtype:null, arg:this.#ri.low(), code:code , jump:true, cond:'P et non Z' };
-            case AsmWords.BEQ.code: return { name:wordName, argtype:null, arg:this.#ri.low(), code:code , jump:true, cond:'Z' };
-            case AsmWords.BNE.code: return { name:wordName, argtype:null, arg:this.#ri.low(), code:code , jump:true, cond:'non Z' };
-        }
-        switch (argType) {
-            case AsmArgs.A: return { name:wordName, argtype:'@', arg:this.#ri.low(), code:code , jump:false, cond:null };
-            case AsmArgs.K: return { name:wordName, argtype:'K', arg:this.#ri.low(), code:code , jump:false, cond:null };
-            case AsmArgs.P: return { name:wordName, argtype:'P', arg:null, code:code , jump:false, cond:null };
-            case AsmArgs.NO: return { name:wordName, argtype:'N', arg:null, code:code , jump:false, cond:null };
-        }
-        return { name:null, argtype:null, arg:null, code:code, jump:false, cond:null };
-    }
-
     stateDescription() {
-        let word = this.word;
         switch(this.#state) {
             case STATES.READ_RI: {
-                let a = this.#pl.read();
+                let a = this.#pl.low();
                 let mem = this.#memory.read(a, 'hex');
                 return `Lecture Mémoire en PL = ${a}.\n0x${mem} sera écrit dans RI.\nPL sera incrémenté.`;
             }
             case STATES.DECODE_RI:
-                let decode = this.decodeRI();
-                if (decode.name === null) {
+                if (this.wordName == 'INCONNU') {
                     return 'Erreur.';
                 }
-                if (decode.jump && (decode.cond === null)) {
-                    return `Un saut ${decode.name} vers ${decode.arg} est décodé.`;
+                let cond = jumpCond(this.word);
+                if (isJump(this.word) && (cond === null)) {
+                    return `Un saut ${this.wordName} vers ${this.arg} est décodé.`;
                 }
-                if (decode.jump) {
-                    return `Un saut conditionnel ${decode.name} vers ${decode.arg} est décodé.\nLe saut sera effectué si ${decode.cond}.`;
+                if (isJump(this.word)) {
+                    return `Un saut conditionnel ${this.wordName} vers ${this.arg} est décodé.\nLe saut sera effectué si ${cond}.`;
                 }
-                if (decode.argtype === null) {
-                    return `Une instruction ${decode.name} est décodée.`;
+
+                if (!actsOnOperand(this.word)) {
+                    return `Une instruction ${this.wordName} est décodée.`;
                 }
-                if (word == AsmWords.INP.code) {
-                    if (decode.argtype == '@') {
-                        `Une instruction INP vers l'adresse @${decode.arg} a été décodée.`
+                if (this.word == AsmWords.INP.code) {
+                    if (this.argType == AsmArgs.A) {
+                        `Une instruction INP vers l'adresse @${this.arg} a été décodée.`
                     } else {
                         `Une instruction INP vers W a été décodée.`
                     }
                 }
-                switch (decode.argtype) {
-                    case '@': return `Une instruction ${decode.name} opérant sur l'adresse @${decode.arg} est décodée.`;
-                    case 'K':
-                        if (decode.arg == 255) {
-                            return `Une instruction ${decode.name} opérant sur un littéral long est décodée.\nLe littéral se trouve à l'adresse mémoire @${this.#pl.low()}.`;
+                
+                switch (this.argType) {
+                    case AsmArgs.A: return `Une instruction ${this.wordName} opérant sur l'adresse @${this.arg} est décodée.`;
+                    case AsmArgs.K:
+                        if (this.arg == 255) {
+                            return `Une instruction ${this.wordName} opérant sur un littéral long est décodée.\nLe littéral se trouve à l'adresse mémoire @${this.#pl.low()}.`;
                         } else {
-                            return `Une instruction ${decode.name} opérant sur le littéral court ${decode.arg} est décodée.`;
+                            return `Une instruction ${this.wordName} opérant sur le littéral court ${this.arg} est décodée.`;
                         }
-                    case AsmArgs.P: return `Une instruction ${decode.name} opérant en dépilant est décodée.`;
-                    case AsmArgs.NO: return `Une instruction ${decode.name} opérant sur W argument décodée.`;
+                    case AsmArgs.P: return `Une instruction ${this.wordName} opérant en dépilant est décodée.`;
+                    case AsmArgs.NO: return `Une instruction ${this.wordName} opérant sur W argument décodée.`;
                 }
                 return "Erreur";
             case STATES.HALT: return "Processeur à l'arrêt (HALT)";
@@ -325,12 +300,12 @@ class Engine {
             case STATES.LOAD_K:
                 return `Chargement du littéral ${this.#ri.low()} vers UAL.`;
             case STATES.OUT_BIG_K: {
-                let a = this.#pl.read();
+                let a = this.#pl.low();
                 let k = this.#memory.read(a, 'hex');
                 return `Chargement littéral long :\nLecture Mémoire en PL = ${a}.\n0x${k} sera écrit dans OUT.\nPL sera incrémenté.`;
             }
             case STATES.LOAD_BIG_K: {
-                let a = this.#pl.read();
+                let a = this.#pl.low();
                 let k = this.#memory.read(a, 'hex');
                 return `Chargement littéral long :\nLecture Mémoire en PL = ${a}.\n0x${k} sera écrit dans UAL.\nPL sera incrémenté.`;
             }
@@ -345,12 +320,12 @@ class Engine {
                 return `Chargement selon adresse :\nLecture Mémoire en @ = ${a}.\n0x${v} sera écrit dans UAL.`;
             }
             case STATES.OUT_POP: {
-                let a = this.#sp.read();
+                let a = this.#sp.low();
                 let p = this.#memory.read(a, 'hex');
                 return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans OUT.\nSP sera incrémenté.`;
             }
             case STATES.LOAD_POP: {
-                let a = this.#sp.read();
+                let a = this.#sp.low();
                 let p = this.#memory.read(a, 'hex');
                 return `Chargement de valeur popée de la pile :\nLecture Mémoire en SP = ${a}.\n0x${p} sera écrit dans UAL.\nSP sera incrémenté.`;
             }
@@ -376,14 +351,14 @@ class Engine {
             case STATES.DEC_SP:
                 return `Pour préparer PUSH, SP va être décrémenté.`;
             case STATES.PUSH:
-                return `PUSH : Registre de travail W = 0x${this.#ual.hex()} va être transféré sur la pile, à l'adresse SP = ${this.#sp.read()}.`;
+                return `PUSH : Registre de travail W = 0x${this.#ual.hex()} va être transféré sur la pile, à l'adresse SP = ${this.#sp.low()}.`;
             case STATES.STR:
                 return `STORE : Registre de travail W = 0x${this.#ual.hex()} va être transféré dans la mémoire à l'adresse @ = ${this.#ri.low()}.`;
             case STATES.JMP:
                 return `SAUT : ${this.#ri.low()} va être transféré dans le pointeur de ligne PL.`;
             case STATES.EXEC_UAL:
                 return `Exécution UAL :\n${this.#ual.descrition()}`;
-            case STATES.FIN_INSTR: return "NOP : Pas d'opération";
+            case STATES.NOP: return "NOP : Pas d'opération";
             case STATES.FIN_INSTR: return "Fin instruction";
             case STATES.START: return "Démarrage.";
             default: return "Erreur.";
@@ -395,7 +370,7 @@ class Engine {
             (this.#state == STATES.LOAD_BIG_K) ||
             (this.#state == STATES.OUT_BIG_K)
             ) {
-            return this.#pl.read();
+            return this.#pl.low();
         }
         if ((this.#state == STATES.LOAD_A) ||
             (this.#state == STATES.OUT_A)  ||
@@ -408,7 +383,7 @@ class Engine {
             (this.#state == STATES.LOAD_POP) ||
             (this.#state = STATES.PUSH)
         ) {
-            return this.#sp.read();
+            return this.#sp.low();
         }
         return null;
     }
@@ -485,7 +460,7 @@ class Engine {
             case DATA_BUS.IN : return this.#in.read();
             case DATA_BUS.MEM: return this.#memory.read(this.memAdresse());
             case DATA_BUS.UAL: return this.#ual.read();
-            case DATA_BUS.PL: return this.#pl.read();
+            case DATA_BUS.PL: return this.#pl.low();
             case DATA_BUS.OUT:
                 throw Error("OUT ne peut être lu !");
             case DATA_BUS.RI: return this.#ri.low();
@@ -563,12 +538,12 @@ class Engine {
                     case AsmWords.HALT.code: return STATES.HALT;
                     case AsmWords.INP.code: return STATES.BUFF_IN;
                     case AsmWords.JMP.code: return STATES.JMP;
-                    case AsmWords.BEQ.code: return this.#ual.Z ? STATES.JMP : STATES.FIN_INSTR;
-                    case AsmWords.BNE.code: return !this.#ual.Z ? STATES.JMP : STATES.FIN_INSTR;
-                    case AsmWords.BGE.code: return this.#ual.P ? STATES.JMP : STATES.FIN_INSTR;
-                    case AsmWords.BLT.code: return !this.#ual.P ? STATES.JMP : STATES.FIN_INSTR;
-                    case AsmWords.BGT.code: return this.#ual.P && !this.#ual.Z ? STATES.JMP : STATES.FIN_INSTR;
-                    case AsmWords.BLE.code: return !this.#ual.P || this.#ual.Z ? STATES.JMP : STATES.FIN_INSTR;
+                    case AsmWords.BEQ.code: return this.#ual.Z ? STATES.JMP : STATES.NOP;
+                    case AsmWords.BNE.code: return !this.#ual.Z ? STATES.JMP : STATES.NOP;
+                    case AsmWords.BGE.code: return this.#ual.P ? STATES.JMP : STATES.NOP;
+                    case AsmWords.BLT.code: return !this.#ual.P ? STATES.JMP : STATES.NOP;
+                    case AsmWords.BGT.code: return this.#ual.P && !this.#ual.Z ? STATES.JMP : STATES.NOP;
+                    case AsmWords.BLE.code: return !this.#ual.P || this.#ual.Z ? STATES.JMP : STATES.NOP;
                     case AsmWords.NOP.code: return STATES.NOP;
                     case AsmWords.POP.code: return STATES.LOAD_POP;
                 }
