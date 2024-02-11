@@ -1,6 +1,4 @@
 class Box {
-    #codeLines;
-    #nodes;
     #container = null;
     #titlebar;
     #x;
@@ -12,6 +10,7 @@ class Box {
 
     constructor(title, contentTag, zombie = false) {
         if (zombie) {
+            this.#y = 0;
             return;
         }
         this.#container = document.createElement("div");
@@ -74,6 +73,7 @@ class Box {
 
     setXY(x,y) {
         if (this.#container == null) {
+            this.#y = y;
             return;
         }
         this.#container.style.left = x + 'px';
@@ -93,7 +93,7 @@ class Box {
 
     get bottom() {
         if (this.#container == null) {
-            return 0;
+            return this.#y;
         }
         return this.#container.offsetTop + this.#container.offsetHeight;
     }
