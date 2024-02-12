@@ -15,7 +15,7 @@ function submitPython(){
     addMessage("Compilation &rarr; ASM...", false, 'Python');
     try {
         let result = new Parser(source);
-        asm.value = result.asm;
+        asmFrame.value = result.asm;
         addMessage("Succès !", 'validline', 'Python');
         return result;
     } catch({type, message}) {
@@ -54,13 +54,14 @@ function submitAsm(cibleLog = 'Asm'){
     if (cibleLog != 'Python') {
         cibleLog = 'Asm';
     }
-    let source = asm.value;
+    let source = asmFrame.value;
     addMessage("Codage ASM &rarr; Binaire...", false, cibleLog);
     try {
         let asm = new AsmLines(source);
         let b = asm.binary;
         binary.value = b.join('\n');
         binary.hex = asm.hex.join('');
+        asmFrame.value = asm.asm;
         addMessage("Succès !", 'validline', cibleLog);
         return asm;
     } catch({type, message}) {
@@ -81,7 +82,7 @@ function runAsm(){
         return null;
     }
     // succès, le python peut être envoyé
-    let source = encodeURIComponent(asm.value);
+    let source = encodeURIComponent(asmFrame.value);
     window.open(`./up.html?asm=${source}`, '_blank').focus();
 }
 
@@ -124,7 +125,7 @@ let asmButton = document.getElementById('validasm');
 let runAsmButton = document.getElementById('runasm');
 let runButton = document.getElementById('runButton');
 let pythonSource = document.getElementById('python');
-let asm = document.getElementById('asm');
+let asmFrame = document.getElementById('asm');
 let binary = document.getElementById('binary');
 let erreurPython = document.getElementById('errorPython');
 let erreurAsm = document.getElementById('errorAsm');
