@@ -330,6 +330,10 @@ class AsmLines {
     get program() {
         return _.clone(this.#binary);
     }
+
+    get asm() {
+        return _.map(this.#lines, function(item){ return item.toString() }).join('\n');
+    }
 }
 
 
