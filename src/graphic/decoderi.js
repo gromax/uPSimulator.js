@@ -52,7 +52,6 @@ class DecodeRI {
            argtype: type d'argument
            arg: 8 bits d'argument
         */
-        
         // affichage binaire de l'opcode
         let t = decToRadix(word, 2, 6);
         this.#binOpcode.text(`${t.substring(0,4)} ${t.substring(4,6)}`).cx(this.#backOpcode.cx());
