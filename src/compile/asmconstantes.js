@@ -84,6 +84,7 @@ function jumpCond(code){
 
 function actsOnOperand(code){
     return ((code == AsmWords.OUT.code) ||
+            (code == AsmWords.INP.code) ||
             (code == AsmWords.ADD.code) ||
             (code == AsmWords.SUB.code) ||
             (code == AsmWords.MUL.code) ||
@@ -96,6 +97,12 @@ function actsOnOperand(code){
             (code == AsmWords.MOV.code) ||
             (code == AsmWords.INV.code) ||
             (code == AsmWords.NEG.code) ||
+            (code == AsmWords.BLE.code) ||
+            (code == AsmWords.BGE.code) ||
+            (code == AsmWords.BGT.code) ||
+            (code == AsmWords.BEQ.code) ||
+            (code == AsmWords.BNE.code) ||
+            (code == AsmWords.JMP.code) ||
             (code == AsmWords.STR.code));
 }
 
