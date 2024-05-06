@@ -129,6 +129,9 @@ class AsmLine {
         if (this.#argtype == AsmArgs.P) {
             return `${this.#lab}\t${this.#word} POP`;
         }
+        if (this.#argtype == AsmArgs.D) {
+            return `${this.#lab}\t${this.#word} ${this.#arg}`;
+        }
         return `${this.#lab}\t${this.#word}`;
     }
 
