@@ -231,6 +231,7 @@ class ExpressionParser {
         note: Les symboles + et - sont ambigus car ils peuvent être compris comme des
               symboles unaires ou binaires.
               On réalise un traitement pour lever l'ambiguité.
+              Deux // successifs sont compris comme une division de toute façon entière
         */
         let regex = new RegExp([
             BinaryOperatorToken.regex,
@@ -264,8 +265,35 @@ class ExpressionParser {
             } else {
                 throw Error(`Match ${item} ne correspond à aucun token.`);
             }
-        }            
-        return ExpressionParser.#consolid_add_sub(tokens);
+        }
+        ExpressionParser.#consolid_add_sub(tokens);
+        let tokens_correct_div = ExpressionParser.#consolid_div(tokens);
+        return tokens_correct_div;
+    }
+
+    static #consolid_div(tokens) {
+        /* Cherche une succession de deux /
+           Dans ce cas les remplace par // dans une nouvelle liste
+           renvoie la nouvelle liste de tokens
+        */
+        let i = 0;
+        let new_tokens = [];
+        let last_is_div = false;
+        for (let i=0; i<tokens.length; i++){
+            if (tokens[i].symbol != '/')  {
+                last_is_div = false;
+                new_tokens.push(tokens[i]);
+                continue;
+            }
+            if (last_is_div) {
+                new_tokens[new_tokens.length - 1] = new BinaryOperatorToken("//");
+                last_is_div = false;
+                continue;
+            }
+            last_is_div = true;
+            new_tokens.push(tokens[i]);
+        }
+        return new_tokens;
     }
 
     static #consolid_add_sub(tokens) {
@@ -283,7 +311,6 @@ class ExpressionParser {
         - le token suit un opérateur
 
         tokens: liste brute des tokens représentant l'expression
-        return: La liste des tokens avec les - et + corrigés le cas échéant
         */
         let i = 0;
         while (i < tokens.length) {
@@ -306,7 +333,6 @@ class ExpressionParser {
                 i++;
             }
         }
-        return tokens;
     }
 
     static build(expression) {
