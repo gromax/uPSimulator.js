@@ -228,7 +228,7 @@ class ExpressionParser {
         représentant chacun un item de l'expression.
         expression: expression à tester
         return: La liste des tokens tels que donnés dans l'expression
-        note: Les symboles + et - est ambigu car ils peuvent être compris comme des
+        note: Les symboles + et - sont ambigus car ils peuvent être compris comme des
               symboles unaires ou binaires.
               On réalise un traitement pour lever l'ambiguité.
         */
