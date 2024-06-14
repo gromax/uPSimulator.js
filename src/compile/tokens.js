@@ -143,7 +143,7 @@ class UnaryOperatorToken extends Token {
 }
 
 class BinaryOperatorToken extends Token {
-    static regex = "\\+|\\-|\\*|\\/|\\/\\/|%|\\||&|\\^|>(?!=)|>=|<(?!=)|<=|==|!=|or|and";
+    static regex = "\\+|\\-|\\*|\\/|%|\\||&|\\^|>(?!=)|>=|<(?!=)|<=|==|!=|or|and";
     #left = null;
     #right = null;
     #symbol = '';
@@ -170,8 +170,14 @@ class BinaryOperatorToken extends Token {
             this.#priority = 7;
             this.#commutatif = true;
             this.#asmcode = "MUL";
-        } else if ((this.#symbol == '//') || (this.#symbol == '/')) {
+        } else if (this.#symbol == '//') {
             this.#symbol = '//';
+            this.#type = OpType.ARITHMETIC;
+            this.#priority = 7;
+            this.#commutatif = false;
+            this.#asmcode = "DIV";
+        } else if (this.#symbol == '/') {
+            this.#symbol = '/';
             this.#type = OpType.ARITHMETIC;
             this.#priority = 7;
             this.#commutatif = false;
